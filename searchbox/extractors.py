@@ -34,3 +34,9 @@ def body_text(response):
         return response.text
     else:
         return None
+
+
+def is_processable(response):
+    status_ok = response.status < 400 and response.status != 304
+    is_cached = 'cached' in response.flags
+    return status_ok and not is_cached

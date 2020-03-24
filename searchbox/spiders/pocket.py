@@ -7,7 +7,7 @@ from datetime import datetime
 
 from ..secrets_loader import SECRETS
 from ..items import CrawlItem
-from ..extractors import *
+from ..extractors import body_text, is_processable
 from typing import Dict
 
 RESULTS_PER_REQUEST = 50
@@ -18,18 +18,22 @@ class PocketSpider(scrapy.Spider):
 
     consumer_key = SECRETS.pocket['consumer_key']
     access_token = SECRETS.pocket['access_token']
-    
+
     def start_requests(self):
         urls = ['https://getpocket.com/v3/get']
         for url in urls:
             yield self.make_pocket_request()
 
     def parse_webpage(self, response):
+        if not is_processable(response):
+            return
         url = response.meta['url']
         content = body_text(response)
         yield CrawlItem(url=url, content=content)
 
     def parse_pocket_page(self, response):
+        if not is_processable(response):
+            return
         result = json.loads(response.body_as_unicode())
         if result['status'] != 1:
             return

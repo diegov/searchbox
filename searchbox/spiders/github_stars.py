@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from scrapy.link import Link
 from scrapy.http import JsonRequest
 import json
-import re
 import links_from_header
 
 from ..secrets_loader import SECRETS
 from ..items import CrawlItem
-from ..extractors import *
+from ..extractors import body_text, is_processable, fix_url
 
 usernames = SECRETS.github['users_to_crawl']
+
 
 class GithubStarsSpider(scrapy.Spider):
     name = 'github_stars'
@@ -24,9 +23,9 @@ class GithubStarsSpider(scrapy.Spider):
             yield JsonRequest(url=url, callback=self.parse_stars)
 
     def parse_stars(self, response):
-        if response.status >= 400:
+        if not is_processable(response):
             return
-        
+
         items = json.loads(response.body_as_unicode())
         for starred in items:
             api_url = starred['url']
@@ -42,13 +41,12 @@ class GithubStarsSpider(scrapy.Spider):
         if next_page_url is not None:
             yield JsonRequest(url=next_page_url, callback=self.parse_stars)
 
-
     def parse_readme(self, response):
         star_item = response.meta['item']
 
-        if response.status < 400:
+        if is_processable(response):
             star_item['content'] = body_text(response)
-        
+
         if 'homepage_url' in response.meta:
             homepage_url = fix_url(response.meta['homepage_url'])
             if homepage_url:
@@ -64,10 +62,10 @@ class GithubStarsSpider(scrapy.Spider):
     def parse_repo(self, response):
         star_item = response.meta['item']
 
-        if response.status >= 400:
+        if not is_processable(response):
             yield star_item
             return
-        
+
         item = json.loads(response.body_as_unicode())
 
         # TODO: Topics API is in beta, update this to incldue topics once that's stable
@@ -90,7 +88,7 @@ class GithubStarsSpider(scrapy.Spider):
         yield req
 
     def parse_homepage(self, response):
-        if response.status >= 400:
+        if not is_processable(response):
             return
 
         url = response.url
