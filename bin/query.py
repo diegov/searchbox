@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-
+import sys
 from elasticsearch import Elasticsearch
 
 INDEX_NAME = "scrapy"
 
 def main():
-    import sys
-
     if len(sys.argv) < 2:
         sys.stderr.write('Usage: {} q QUERY TERMS\n'.format(sys.argv[0]))
         sys.exit(1)
@@ -23,7 +21,6 @@ def main():
 
 
 def init_elastic() -> Elasticsearch:
-    import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
     from searchbox import secrets_loader
@@ -52,11 +49,23 @@ def run_query(query_terms):
         }
     })
 
+
     print("Got %d Hits:" % res['hits']['total']['value'])
     for hit in res['hits']['hits']:
         item = hit['_source']
-        if 'name' in item:
-            print('{}: {}'.format(item['name'], item['url']))
+
+        def get_value(*keys):
+            if len(keys) == 0: return ''
+            key = keys[0]
+            if key in item:
+                value = item[key].strip()
+                if value:
+                    return value.replace('\n', ' ')[:64].strip()
+            return get_value(*keys[1:])
+
+        name = get_value('name', 'description', 'content')
+
+        print('{}: {}'.format(name, item['url']))
 
 
 def run_reset_index():
