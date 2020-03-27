@@ -58,7 +58,7 @@ def run_query(query_terms):
             if len(keys) == 0: return ''
             key = keys[0]
             if key in item:
-                value = item[key].strip()
+                value = item[key].strip() if item[key] else None
                 if value:
                     return value.replace('\n', ' ')[:64].strip()
             return get_value(*keys[1:])
