@@ -6,3 +6,4 @@ python-mimeparse
 -e git+https://github.com/diegov/scrapy-elasticsearch.git@d74d27b50eb01497159be9b3a3229a9f2310ad06#egg=ScrapyElasticSearch
 certifi
 elasticsearch>=7.0.0,<8.0.0
+twitter

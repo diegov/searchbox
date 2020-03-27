@@ -10,5 +10,7 @@ class CrawlItem(scrapy.Item):
     last_update = scrapy.Field()
     content = scrapy.Field()
     github_backlink = scrapy.Field()
+    twitter_backlink = scrapy.Field()
     alt_url = scrapy.Field()
     pocket_tags = scrapy.Field()
+    twitter_tags = scrapy.Field()

@@ -5,4 +5,5 @@ THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$THIS_SCRIPT_DIR"/.. &&
     . venv/bin/activate &&
     scrapy crawl github_stars &&
-    scrapy crawl pocket
+    scrapy crawl pocket &&
+    scrapy crawl twitter_favs
