@@ -27,13 +27,23 @@ def is_github_html(response):
 def body_text(response):
     if response is None:
         return None
+
+    text_data = None
     
     if isinstance(response, HtmlResponse) or is_github_html(response):
-        return ''.join(response.xpath("//body//text()").extract()).strip()
+        text_data = ''.join(response.xpath("//body//text()").extract()).strip()
     elif isinstance(response, TextResponse):
-        return response.text
+        text_data = response.text
     else:
-        return None
+        text_data = None
+
+    # 20MB assuming 2 bytes per character, not the worst possible case for UTF-8 since some
+    # characters encode as 4 bytes, but pretty safe based on normal text
+    max_length = 10485760
+    if text_data and len(text_data) > max_length:
+        text_data = text_data[:max_length]
+
+    return text_data
 
 
 def is_processable(response):

@@ -85,6 +85,7 @@ ELASTICSEARCH_INDEX = 'scrapy'
 ELASTICSEARCH_TYPE = 'items'
 ELASTICSEARCH_UNIQ_KEY = 'url'  # Custom unique key
 ELASTICSEARCH_MERGE = True
+ELASTICSEARCH_BUFFER_LENGTH=20
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
