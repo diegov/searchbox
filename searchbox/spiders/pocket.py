@@ -9,6 +9,7 @@ from ..secrets_loader import SECRETS
 from ..items import CrawlItem
 from ..extractors import body_text, is_processable
 from typing import Dict
+import re
 
 RESULTS_PER_REQUEST = 50
 
@@ -52,7 +53,7 @@ class PocketSpider(scrapy.Spider):
                 alt_url = None
                 
             if 'tags' in item:
-                tags = list(item['tags'].keys())
+                tags = [' '.join(re.split('_|-', item)) for item in list(item['tags'].keys())]
             else:
                 tags = None
 
