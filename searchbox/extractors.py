@@ -29,9 +29,11 @@ def body_text(response):
         return None
 
     text_data = None
+    title = None
     
     if isinstance(response, HtmlResponse) or is_github_html(response):
-        text_data = ''.join(response.xpath("//body//text()").extract()).strip()
+        text_data = '\n'.join(response.xpath("//body//text()").extract()).strip()
+        title = ' '.join(response.xpath("//head/title//text()").extract()).strip()
     elif isinstance(response, TextResponse):
         text_data = response.text
     else:
@@ -43,7 +45,7 @@ def body_text(response):
     if text_data and len(text_data) > max_length:
         text_data = text_data[:max_length]
 
-    return text_data
+    return (title, text_data)
 
 
 def is_processable(response):

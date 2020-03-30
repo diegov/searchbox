@@ -45,7 +45,9 @@ class GithubStarsSpider(scrapy.Spider):
         star_item = response.meta['item']
 
         if is_processable(response):
-            star_item['content'] = body_text(response)
+            # Ignore title, we get it from the API
+            _, content = body_text(response)
+            star_item['content'] = content
 
         if 'homepage_url' in response.meta:
             homepage_url = fix_url(response.meta['homepage_url'])
@@ -94,8 +96,11 @@ class GithubStarsSpider(scrapy.Spider):
         url = response.url
         github_url = response.meta['github_url']
 
-        content = body_text(response)
-        yield CrawlItem(url=url, github_backlink=github_url, content=content)
+        title, content = body_text(response)
+        item = CrawlItem(url=url, github_backlink=github_url, content=content)
+        if title:
+            item['name'] = title
+        yield item
 
     def extract_next_page(self, headers):
         links = None

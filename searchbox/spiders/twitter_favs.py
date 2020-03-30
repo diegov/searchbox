@@ -83,5 +83,8 @@ class TwitterFavsSpider(scrapy.Spider):
             return
         url = response.meta['url']
         twitter_url = response.meta['twitter_url']
-        content = body_text(response)
-        yield CrawlItem(url=url, content=content, twitter_backlink=twitter_url)
+        title, content = body_text(response)
+        item = CrawlItem(url=url, content=content, twitter_backlink=twitter_url)
+        if title:
+            item['name'] = title
+        yield item
