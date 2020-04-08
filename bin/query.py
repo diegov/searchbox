@@ -43,12 +43,11 @@ def run_query(query_terms):
         "query": {
             "query_string": {
                 "query": query_term,
-                "fuzziness": 5,
-                "type": "most_fields"
+                "fuzziness": "AUTO:2,6",
+                "type": "best_fields"
             }
         }
     })
-
 
     print("Got %d Hits:" % res['hits']['total']['value'])
     for hit in res['hits']['hits']:
@@ -71,7 +70,25 @@ def run_query(query_terms):
 def run_reset_index():
     es: Elasticsearch = init_elastic()
     es.indices.delete(index=INDEX_NAME, ignore=[404])
-    es.indices.create(index=INDEX_NAME)
+    index_settings = {
+        "settings": {
+            "analysis" : {
+                "analyzer" : {
+                    "my_analyzer" : {
+                        "tokenizer" : "standard",
+                        "filter" : ["lowercase", "my_stemmer"]
+                    }
+                },
+                "filter" : {
+                    "my_stemmer" : {
+                        "type" : "stemmer",
+                        "name" : "light_english"
+                    }
+                }
+            }
+        }
+    }
+    es.indices.create(index=INDEX_NAME, body=index_settings)
 
 
 if __name__ == '__main__':
