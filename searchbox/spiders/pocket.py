@@ -50,6 +50,9 @@ class PocketSpider(scrapy.Spider):
 
             url = item['resolved_url']
             alt_url = item['given_url']
+            if not url:
+                url = alt_url
+
             if alt_url == url:
                 alt_url = None
                 
