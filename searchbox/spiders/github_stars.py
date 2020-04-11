@@ -20,7 +20,10 @@ class GithubStarsSpider(scrapy.Spider):
     def start_requests(self):
         urls = ['https://api.github.com/users/{}/starred'.format(name) for name in usernames]
         for url in urls:
-            yield JsonRequest(url=url, callback=self.parse_stars)
+            req = JsonRequest(url=url, callback=self.parse_stars)
+            # API call, don't need to check robots
+            req.meta['dont_obey_robotstxt'] = True
+            yield req
 
     def parse_stars(self, response):
         if not is_processable(response):
@@ -32,34 +35,26 @@ class GithubStarsSpider(scrapy.Spider):
             html_url = starred['html_url']
             name = starred['name']
             description = starred['description']
-            req = JsonRequest(url=api_url, callback=self.parse_repo)
             star_item = CrawlItem(name=name, description=description, url=html_url)
+            req = JsonRequest(url=api_url, callback=self.parse_repo)
             req.meta['item'] = star_item
+            req.meta['dont_obey_robotstxt'] = True
             yield req
 
         next_page_url = self.extract_next_page(response.headers)
         if next_page_url is not None:
-            yield JsonRequest(url=next_page_url, callback=self.parse_stars)
+            req = JsonRequest(url=next_page_url, callback=self.parse_stars)
+            req.meta['dont_obey_robotstxt'] = True
+            yield req
 
     def parse_readme(self, response):
-        star_item = response.meta['item']
-
         if is_processable(response):
             # Ignore title, we get it from the API
             _, content = body_text(response)
-            star_item['content'] = content
+            url = response.meta['url']
+            item = CrawlItem(url=url, content=content)
 
-        if 'homepage_url' in response.meta:
-            homepage_url = fix_url(response.meta['homepage_url'])
-            if homepage_url:
-                req = scrapy.Request(url=homepage_url, callback=self.parse_homepage)
-                req.meta['github_url'] = star_item['url']
-                yield req
-            else:
-                yield star_item
-        else:
-            yield star_item
-
+            yield item
 
     def parse_repo(self, response):
         star_item = response.meta['item']
@@ -77,17 +72,20 @@ class GithubStarsSpider(scrapy.Spider):
         
         star_item['last_update'] = last_update
 
-        readme_url = item['url'] + '/readme'
-        req = scrapy.Request(url=readme_url, callback=self.parse_readme, headers={"Accept": "application/vnd.github.v3.html"})
+        yield star_item
 
-        req.meta['item'] = star_item
+        readme_url = item['url'] + '/readme'
+        readme_req = scrapy.Request(url=readme_url, callback=self.parse_readme, headers={"Accept": "application/vnd.github.v3.html"})
+
+        readme_req.meta['url'] = star_item['url']
+        yield readme_req
         
         if 'homepage' in item:
             homepage_url = fix_url(item['homepage'])
             if homepage_url:
-                req.meta['homepage_url'] = homepage_url
-
-        yield req
+                req = scrapy.Request(url=homepage_url, callback=self.parse_homepage)
+                req.meta['github_url'] = star_item['url']
+                yield req
 
     def parse_homepage(self, response):
         if not is_processable(response):
@@ -118,3 +116,5 @@ class GithubStarsSpider(scrapy.Spider):
         
         if 'next' in results:
             return results['next']
+        else:
+            return None
