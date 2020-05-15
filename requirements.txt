@@ -7,11 +7,11 @@
 -e git+https://github.com/diegov/scrapy-elasticsearch.git@d74d27b50eb01497159be9b3a3229a9f2310ad06#egg=ScrapyElasticSearch  # via -r requirements.in
 attrs==19.3.0             # via automat, service-identity, twisted
 automat==20.2.0           # via twisted
-certifi==2019.11.28       # via -r requirements.in
+certifi==2020.4.5.1       # via -r requirements.in
 cffi==1.14.0              # via cryptography
 click==7.1.1              # via pip-tools
 constantly==15.1.0        # via twisted
-cryptography==2.8         # via pyopenssl, scrapy, service-identity
+cryptography==2.9         # via pyopenssl, scrapy, service-identity
 cssselect==1.1.0          # via parsel, scrapy
 decorator==4.4.2          # via validators
 elasticsearch==7.6.0      # via -r requirements.in, scrapyelasticsearch
@@ -37,9 +37,9 @@ six==1.14.0               # via automat, cryptography, parsel, pip-tools, proteg
 twisted==20.3.0           # via scrapy
 twitter==1.18.0           # via -r requirements.in
 urllib3==1.25.8           # via elasticsearch
-validators==0.14.2        # via -r requirements.in
+validators==0.14.3        # via -r requirements.in
 w3lib==1.21.0             # via parsel, scrapy
-zope.interface==5.0.1     # via scrapy, twisted
+zope.interface==5.1.0     # via scrapy, twisted
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
