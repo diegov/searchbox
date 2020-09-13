@@ -32,11 +32,12 @@ pycparser==2.20           # via cffi
 pydispatcher==2.0.5       # via scrapy
 pyhamcrest==2.0.2         # via twisted
 pyopenssl==19.1.0         # via scrapy
+python-dateutil==2.8.1    # via -r requirements.in
 python-mimeparse==1.6.0   # via -r requirements.in
 queuelib==1.5.0           # via scrapy
 scrapy==2.3.0             # via -r requirements.in, scrapyelasticsearch
 service-identity==18.1.0  # via scrapy
-six==1.15.0               # via automat, cryptography, parsel, pip-tools, protego, pyopenssl, validators, w3lib
+six==1.15.0               # via automat, cryptography, parsel, pip-tools, protego, pyopenssl, python-dateutil, validators, w3lib
 twisted==20.3.0           # via scrapy
 twitter==1.18.0           # via -r requirements.in
 urllib3==1.25.10          # via elasticsearch

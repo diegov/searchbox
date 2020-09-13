@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from elasticsearch import Elasticsearch
+import dateutil.parser
 
 INDEX_NAME = "scrapy"
 
@@ -64,7 +65,14 @@ def run_query(query_terms):
 
         name = get_value('name', 'description', 'content')
 
-        print('{}: {}'.format(name, item['url']))
+        print('({}) {}: {}'.format(year(item.get('last_update')), name, item['url']))
+
+
+def year(dt) -> str:
+    if dt is None:
+        return '?'
+    else:
+        return str(dateutil.parser.isoparse(dt).year)
 
 
 def run_reset_index():
