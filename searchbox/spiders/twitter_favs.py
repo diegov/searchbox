@@ -46,7 +46,7 @@ class TwitterFavsSpider(scrapy.Spider):
         if not is_processable(response):
             return
 
-        result = json.loads(response.body_as_unicode())
+        result = json.loads(response.text)
         if len(result) == 0:
             return
 
@@ -60,7 +60,7 @@ class TwitterFavsSpider(scrapy.Spider):
             last_update = created_at.isoformat()
 
             if hashtags:
-                yield CrawlItem(url=url, last_update=last_update, twitter_tags=hashtags)
+                yield CrawlItem(url=url, content=content, last_update=last_update, twitter_tags=hashtags)
             else:
                 yield CrawlItem(url=url, content=content, last_update=last_update)
 
