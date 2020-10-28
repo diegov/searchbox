@@ -8,10 +8,10 @@
 attrs==20.2.0             # via automat, pytest, service-identity, twisted
 automat==20.2.0           # via twisted
 certifi==2020.6.20        # via -r requirements.in, elasticsearch
-cffi==1.14.2              # via cryptography
+cffi==1.14.3              # via cryptography
 click==7.1.2              # via pip-tools
 constantly==15.1.0        # via twisted
-cryptography==3.2         # via pyopenssl, scrapy, service-identity
+cryptography==3.2.1       # via pyopenssl, scrapy, service-identity
 cssselect==1.1.0          # via parsel, scrapy
 decorator==4.4.2          # via validators
 elasticsearch==7.9.1      # via -r requirements.in, scrapyelasticsearch
@@ -19,11 +19,11 @@ hyperlink==20.0.1         # via twisted
 idna==2.10                # via hyperlink
 incremental==17.5.0       # via twisted
 iniconfig==1.1.1          # via pytest
-itemadapter==0.1.0        # via itemloaders, scrapy
+itemadapter==0.1.1        # via itemloaders, scrapy
 itemloaders==1.0.3        # via scrapy
 jmespath==0.10.0          # via itemloaders
 links-from-link-header==0.1.0  # via -r requirements.in
-lxml==4.5.2               # via parsel, scrapy
+lxml==4.6.1               # via parsel, scrapy
 packaging==20.4           # via pytest
 parsel==1.6.0             # via itemloaders, scrapy
 pip-tools==5.3.1          # via -r requirements.in
@@ -41,16 +41,16 @@ pytest==6.1.1             # via -r requirements.in
 python-dateutil==2.8.1    # via -r requirements.in
 python-mimeparse==1.6.0   # via -r requirements.in
 queuelib==1.5.0           # via scrapy
-scrapy==2.3.0             # via -r requirements.in, scrapyelasticsearch
+scrapy==2.4.0             # via -r requirements.in, scrapyelasticsearch
 service-identity==18.1.0  # via scrapy
 six==1.15.0               # via automat, cryptography, packaging, parsel, pip-tools, protego, pyopenssl, python-dateutil, validators, w3lib
 toml==0.10.1              # via pytest
 twisted==20.3.0           # via scrapy
 twitter==1.18.0           # via -r requirements.in
-urllib3==1.25.10          # via elasticsearch
+urllib3==1.25.11          # via elasticsearch
 validators==0.18.1        # via -r requirements.in
 w3lib==1.22.0             # via itemloaders, parsel, scrapy
-zope.interface==5.1.0     # via scrapy, twisted
+zope.interface==5.1.2     # via scrapy, twisted
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
