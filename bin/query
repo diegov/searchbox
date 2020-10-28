@@ -3,7 +3,7 @@
 set -eu
 set -o pipefail
 
-THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+THIS_SCRIPT_DIR="$( cd "$( dirname "$(readlink -f "${BASH_SOURCE[0]}" )" )" && pwd )"
 
 cd "$THIS_SCRIPT_DIR"/.. &&
     . venv/bin/activate &&
