@@ -5,11 +5,11 @@ Simple crawling and indexing of personal bookmarks with Elasticsearch backend.
 Both indexing and search are WIP and need lots of work.
 
 Sources: 
+
 - [x] Github stars
 - [x] Pocket bookmarks
 - [ ] Saved Reddit posts
-- [ ] Liked tweets
-
+- [X] Liked tweets
 
 Configuration
 ==============
