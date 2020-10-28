@@ -5,7 +5,7 @@
 #    pip-compile
 #
 -e git+https://github.com/diegov/scrapy-elasticsearch.git@d74d27b50eb01497159be9b3a3229a9f2310ad06#egg=ScrapyElasticSearch  # via -r requirements.in
-attrs==20.2.0             # via automat, service-identity, twisted
+attrs==20.2.0             # via automat, pytest, service-identity, twisted
 automat==20.2.0           # via twisted
 certifi==2020.6.20        # via -r requirements.in, elasticsearch
 cffi==1.14.2              # via cryptography
@@ -18,26 +18,33 @@ elasticsearch==7.9.1      # via -r requirements.in, scrapyelasticsearch
 hyperlink==20.0.1         # via twisted
 idna==2.10                # via hyperlink
 incremental==17.5.0       # via twisted
+iniconfig==1.1.1          # via pytest
 itemadapter==0.1.0        # via itemloaders, scrapy
 itemloaders==1.0.3        # via scrapy
 jmespath==0.10.0          # via itemloaders
 links-from-link-header==0.1.0  # via -r requirements.in
 lxml==4.5.2               # via parsel, scrapy
+packaging==20.4           # via pytest
 parsel==1.6.0             # via itemloaders, scrapy
 pip-tools==5.3.1          # via -r requirements.in
+pluggy==0.13.1            # via pytest
 protego==0.1.16           # via scrapy
+py==1.9.0                 # via pytest
 pyasn1-modules==0.2.8     # via service-identity
 pyasn1==0.4.8             # via pyasn1-modules, service-identity
 pycparser==2.20           # via cffi
 pydispatcher==2.0.5       # via scrapy
 pyhamcrest==2.0.2         # via twisted
 pyopenssl==19.1.0         # via scrapy
+pyparsing==2.4.7          # via packaging
+pytest==6.1.1             # via -r requirements.in
 python-dateutil==2.8.1    # via -r requirements.in
 python-mimeparse==1.6.0   # via -r requirements.in
 queuelib==1.5.0           # via scrapy
 scrapy==2.3.0             # via -r requirements.in, scrapyelasticsearch
 service-identity==18.1.0  # via scrapy
-six==1.15.0               # via automat, cryptography, parsel, pip-tools, protego, pyopenssl, python-dateutil, validators, w3lib
+six==1.15.0               # via automat, cryptography, packaging, parsel, pip-tools, protego, pyopenssl, python-dateutil, validators, w3lib
+toml==0.10.1              # via pytest
 twisted==20.3.0           # via scrapy
 twitter==1.18.0           # via -r requirements.in
 urllib3==1.25.10          # via elasticsearch
