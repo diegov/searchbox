@@ -50,9 +50,9 @@ class GithubStarsSpider(scrapy.Spider):
     def parse_readme(self, response):
         if is_processable(response):
             # Ignore title, we get it from the API
-            _, content = body_text(response)
+            _, content, html = body_text(response)
             url = response.meta['url']
-            item = CrawlItem(url=url, content=content)
+            item = CrawlItem(url=url, content=content, html=html)
 
             yield item
 
@@ -94,8 +94,8 @@ class GithubStarsSpider(scrapy.Spider):
         url = response.url
         github_url = response.meta['github_url']
 
-        title, content = body_text(response)
-        item = CrawlItem(url=url, github_backlink=github_url, content=content)
+        title, content, html = body_text(response)
+        item = CrawlItem(url=url, github_backlink=github_url, content=content, html=html)
         if title:
             item['name'] = title
         yield item
