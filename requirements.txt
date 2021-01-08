@@ -23,7 +23,7 @@ itemadapter==0.1.1        # via itemloaders, scrapy
 itemloaders==1.0.3        # via scrapy
 jmespath==0.10.0          # via itemloaders
 links-from-link-header==0.1.0  # via -r requirements.in
-lxml==4.6.1               # via parsel, scrapy
+lxml==4.6.2               # via parsel, scrapy
 packaging==20.4           # via pytest
 parsel==1.6.0             # via itemloaders, scrapy
 pip-tools==5.3.1          # via -r requirements.in
