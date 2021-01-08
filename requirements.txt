@@ -4,53 +4,183 @@
 #
 #    pip-compile
 #
--e git+https://github.com/diegov/scrapy-elasticsearch.git@d74d27b50eb01497159be9b3a3229a9f2310ad06#egg=ScrapyElasticSearch  # via -r requirements.in
-attrs==20.2.0             # via automat, pytest, service-identity, twisted
-automat==20.2.0           # via twisted
-certifi==2020.6.20        # via -r requirements.in, elasticsearch
-cffi==1.14.3              # via cryptography
-click==7.1.2              # via pip-tools
-constantly==15.1.0        # via twisted
-cryptography==3.2.1       # via pyopenssl, scrapy, service-identity
-cssselect==1.1.0          # via parsel, scrapy
-decorator==4.4.2          # via validators
-elasticsearch==7.9.1      # via -r requirements.in, scrapyelasticsearch
-hyperlink==20.0.1         # via twisted
-idna==2.10                # via hyperlink
-incremental==17.5.0       # via twisted
-iniconfig==1.1.1          # via pytest
-itemadapter==0.1.1        # via itemloaders, scrapy
-itemloaders==1.0.3        # via scrapy
-jmespath==0.10.0          # via itemloaders
-links-from-link-header==0.1.0  # via -r requirements.in
-lxml==4.6.2               # via parsel, scrapy
-packaging==20.4           # via pytest
-parsel==1.6.0             # via itemloaders, scrapy
-pip-tools==5.3.1          # via -r requirements.in
-pluggy==0.13.1            # via pytest
-protego==0.1.16           # via scrapy
-py==1.9.0                 # via pytest
-pyasn1-modules==0.2.8     # via service-identity
-pyasn1==0.4.8             # via pyasn1-modules, service-identity
-pycparser==2.20           # via cffi
-pydispatcher==2.0.5       # via scrapy
-pyhamcrest==2.0.2         # via twisted
-pyopenssl==19.1.0         # via scrapy
-pyparsing==2.4.7          # via packaging
-pytest==6.1.1             # via -r requirements.in
-python-dateutil==2.8.1    # via -r requirements.in
-python-mimeparse==1.6.0   # via -r requirements.in
-queuelib==1.5.0           # via scrapy
-scrapy==2.4.0             # via -r requirements.in, scrapyelasticsearch
-service-identity==18.1.0  # via scrapy
-six==1.15.0               # via automat, cryptography, packaging, parsel, pip-tools, protego, pyopenssl, python-dateutil, validators, w3lib
-toml==0.10.1              # via pytest
-twisted==20.3.0           # via scrapy
-twitter==1.18.0           # via -r requirements.in
-urllib3==1.25.11          # via elasticsearch
-validators==0.18.1        # via -r requirements.in
-w3lib==1.22.0             # via itemloaders, parsel, scrapy
-zope.interface==5.1.2     # via scrapy, twisted
+-e git+https://github.com/diegov/scrapy-elasticsearch.git@d74d27b50eb01497159be9b3a3229a9f2310ad06#egg=ScrapyElasticSearch
+    # via -r requirements.in
+attrs==20.3.0
+    # via
+    #   automat
+    #   pytest
+    #   service-identity
+    #   twisted
+automat==20.2.0
+    # via twisted
+beautifulsoup4==4.9.3
+    # via mf2py
+certifi==2020.12.5
+    # via
+    #   -r requirements.in
+    #   elasticsearch
+    #   requests
+cffi==1.14.4
+    # via cryptography
+chardet==4.0.0
+    # via requests
+click==7.1.2
+    # via pip-tools
+constantly==15.1.0
+    # via twisted
+cryptography==3.3.1
+    # via
+    #   pyopenssl
+    #   scrapy
+    #   service-identity
+cssselect==1.1.0
+    # via
+    #   parsel
+    #   scrapy
+decorator==4.4.2
+    # via validators
+elasticsearch==7.10.1
+    # via
+    #   -r requirements.in
+    #   scrapyelasticsearch
+extruct==0.12.0
+    # via -r requirements.in
+html-text==0.5.2
+    # via extruct
+html5lib==1.1
+    # via
+    #   mf2py
+    #   pyrdfa3
+hyperlink==21.0.0
+    # via twisted
+idna==2.10
+    # via
+    #   hyperlink
+    #   requests
+incremental==17.5.0
+    # via twisted
+iniconfig==1.1.1
+    # via pytest
+isodate==0.6.0
+    # via rdflib
+itemadapter==0.2.0
+    # via
+    #   itemloaders
+    #   scrapy
+itemloaders==1.0.4
+    # via scrapy
+jmespath==0.10.0
+    # via itemloaders
+jstyleson==0.0.2
+    # via extruct
+links-from-link-header==0.1.0
+    # via -r requirements.in
+lxml==4.6.2
+    # via
+    #   extruct
+    #   html-text
+    #   parsel
+    #   scrapy
+mf2py==1.1.2
+    # via extruct
+packaging==20.8
+    # via pytest
+parsel==1.6.0
+    # via
+    #   itemloaders
+    #   scrapy
+pip-tools==5.5.0
+    # via -r requirements.in
+pluggy==0.13.1
+    # via pytest
+protego==0.1.16
+    # via scrapy
+py==1.10.0
+    # via pytest
+pyasn1-modules==0.2.8
+    # via service-identity
+pyasn1==0.4.8
+    # via
+    #   pyasn1-modules
+    #   service-identity
+pycparser==2.20
+    # via cffi
+pydispatcher==2.0.5
+    # via scrapy
+pyhamcrest==2.0.2
+    # via twisted
+pyopenssl==20.0.1
+    # via scrapy
+pyparsing==2.4.7
+    # via
+    #   packaging
+    #   rdflib
+pyrdfa3==3.5.3
+    # via extruct
+pytest==6.2.1
+    # via -r requirements.in
+python-dateutil==2.8.1
+    # via -r requirements.in
+python-mimeparse==1.6.0
+    # via -r requirements.in
+queuelib==1.5.0
+    # via scrapy
+rdflib-jsonld==0.5.0
+    # via extruct
+rdflib==5.0.0
+    # via
+    #   extruct
+    #   pyrdfa3
+    #   rdflib-jsonld
+requests==2.25.1
+    # via mf2py
+scrapy==2.4.1
+    # via
+    #   -r requirements.in
+    #   scrapyelasticsearch
+service-identity==18.1.0
+    # via scrapy
+six==1.15.0
+    # via
+    #   automat
+    #   cryptography
+    #   extruct
+    #   html5lib
+    #   isodate
+    #   parsel
+    #   protego
+    #   pyopenssl
+    #   python-dateutil
+    #   rdflib
+    #   validators
+    #   w3lib
+soupsieve==2.1
+    # via beautifulsoup4
+toml==0.10.2
+    # via pytest
+twisted==20.3.0
+    # via scrapy
+twitter==1.18.0
+    # via -r requirements.in
+urllib3==1.26.2
+    # via
+    #   elasticsearch
+    #   requests
+validators==0.18.2
+    # via -r requirements.in
+w3lib==1.22.0
+    # via
+    #   extruct
+    #   itemloaders
+    #   parsel
+    #   scrapy
+webencodings==0.5.1
+    # via html5lib
+zope.interface==5.2.0
+    # via
+    #   scrapy
+    #   twisted
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip

@@ -14,3 +14,5 @@ class CrawlItem(scrapy.Item):
     alt_url = scrapy.Field()
     pocket_tags = scrapy.Field()
     twitter_tags = scrapy.Field()
+    article_tags = scrapy.Field()
+    html = scrapy.Field()

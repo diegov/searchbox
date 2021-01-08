@@ -71,6 +71,8 @@ TELNETCONSOLE_ENABLED = False
 DEFAULT_ITEM_CLASS = 'searchbox.items.CrawlItem'
 
 ITEM_PIPELINES = {
+    'searchbox.pipelines.SearchboxPipeline': 0,
+    'searchbox.pipelines.CleanupPipeline': 0,
     'scrapyelasticsearch.scrapyelasticsearch.ElasticSearchPipeline': 1
 }
 

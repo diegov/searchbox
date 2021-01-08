@@ -37,7 +37,7 @@ class TwitterFavsSpider(scrapy.Spider):
         url = 'https://api.twitter.com/1.1/favorites/list.json'
         qs_part = auth.encode_params(url, 'GET', params)
         final_url = url + '?' + qs_part
-        req =  Request(url=final_url, callback=self.parse_favourites)
+        req = Request(url=final_url, callback=self.parse_favourites)
         # This is an authorised API call we don't need to check robots.txt
         req.meta['dont_obey_robotstxt'] = True
         return req
@@ -83,8 +83,8 @@ class TwitterFavsSpider(scrapy.Spider):
             return
         url = response.meta['url']
         twitter_url = response.meta['twitter_url']
-        title, content = body_text(response)
-        item = CrawlItem(url=url, content=content, twitter_backlink=twitter_url)
+        title, content, html = body_text(response)
+        item = CrawlItem(url=url, content=content, twitter_backlink=twitter_url, html=html)
         if title:
             item['name'] = title
         yield item

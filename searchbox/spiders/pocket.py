@@ -30,8 +30,8 @@ class PocketSpider(scrapy.Spider):
             return
         url = response.meta['url']
         # Ignore title, we get it from the pocket API
-        _, content = body_text(response)
-        yield CrawlItem(url=url, content=content)
+        _, content, html = body_text(response)
+        yield CrawlItem(url=url, content=content, html=html)
 
     def parse_pocket_page(self, response):
         if not is_processable(response):
