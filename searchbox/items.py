@@ -15,4 +15,12 @@ class CrawlItem(scrapy.Item):
     pocket_tags = scrapy.Field()
     twitter_tags = scrapy.Field()
     article_tags = scrapy.Field()
+    article_published_date = scrapy.Field()
     html = scrapy.Field()
+
+    def get_all_tags(self):
+        all_tags = set()
+        all_tags.update(self.get('twitter_tags') or [])
+        all_tags.update(self.get('article_tags') or [])
+        all_tags.update(self.get('pocket_tags') or [])
+        return sorted(all_tags)

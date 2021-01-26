@@ -65,14 +65,16 @@ def run_query(query_terms):
 
         name = get_value('name', 'description', 'content')
 
-        print('({}) {}: {}'.format(year(item.get('last_update')), name, item['url']))
+        print('({}) {}: {}'.format(year(
+            get_value('last_update', 'article_published_date')),
+                                   name, item['url']))
 
 
 def year(dt) -> str:
-    if dt is None:
+    if not dt:
         return '?'
-    else:
-        return str(dateutil.parser.isoparse(dt).year)
+
+    return str(dateutil.parser.isoparse(dt).year)
 
 
 def run_reset_index():
