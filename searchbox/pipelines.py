@@ -22,11 +22,15 @@ class SearchboxPipeline(object):
                 html = item['html']
                 base_url = get_base_url(html, url)
                 extractor = MicroformatExtractor(base_url, html)
-                tags = sorted(set(extractor.get_tags()))
-                item['article_tags'] = tags
+                try:
+                    tags = sorted(set(extractor.get_tags()))
+                    item['article_tags'] = tags
+                except Exception as e:
+                    spider.logger.exception(str(e))
 
-                if len(tags) > 0:
-                    print('Tags for item {} processed successfully'.format(url))
+                date_published = extractor.get_published_date()
+                if date_published is not None:
+                    item['article_published_date'] = date_published.isoformat()
             except Exception as e:
                 spider.logger.exception(str(e))
 

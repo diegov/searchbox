@@ -3,10 +3,9 @@ import scrapy
 from scrapy.http import Request
 from twitter import OAuth
 import json
-from datetime import datetime
 
 from ..secrets_loader import SECRETS
-from ..extractors import body_text, is_processable
+from ..extractors import body_text, is_processable, try_parse_date
 from ..items import CrawlItem
 
 RESULTS_PER_REQUEST = 100
@@ -56,7 +55,8 @@ class TwitterFavsSpider(scrapy.Spider):
 
             # Strange we don't have this in the response
             url = 'https://twitter.com/{}/status/{}'.format(fav['user']['screen_name'], fav['id'])
-            created_at = datetime.strptime(fav['created_at'].replace(' +0000 ',' UTC '), '%a %b %d %H:%M:%S %Z %Y')
+            date_str = fav['created_at']
+            created_at = try_parse_date(date_str)
             last_update = created_at.isoformat()
 
             if hashtags:
