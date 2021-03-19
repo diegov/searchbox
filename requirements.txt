@@ -163,7 +163,7 @@ twisted==20.3.0
     # via scrapy
 twitter==1.18.0
     # via -r requirements.in
-urllib3==1.26.2
+urllib3==1.26.3
     # via
     #   elasticsearch
     #   requests
