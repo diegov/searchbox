@@ -21,7 +21,7 @@ certifi==2020.12.5
     #   -r requirements.in
     #   elasticsearch
     #   requests
-cffi==1.14.4
+cffi==1.14.5
     # via cryptography
 chardet==4.0.0
     # via requests
@@ -29,7 +29,7 @@ click==7.1.2
     # via pip-tools
 constantly==15.1.0
     # via twisted
-cryptography==3.3.2
+cryptography==3.4.6
     # via
     #   pyopenssl
     #   scrapy
@@ -40,7 +40,7 @@ cssselect==1.1.0
     #   scrapy
 decorator==4.4.2
     # via validators
-elasticsearch==7.10.1
+elasticsearch==7.11.0
     # via
     #   -r requirements.in
     #   scrapyelasticsearch
@@ -58,7 +58,7 @@ idna==2.10
     # via
     #   hyperlink
     #   requests
-incremental==17.5.0
+incremental==21.3.0
     # via twisted
 iniconfig==1.1.1
     # via pytest
@@ -84,13 +84,15 @@ lxml==4.6.2
     #   scrapy
 mf2py==1.1.2
     # via extruct
-packaging==20.8
+packaging==20.9
     # via pytest
 parsel==1.6.0
     # via
     #   itemloaders
     #   scrapy
-pip-tools==5.5.0
+pep517==0.10.0
+    # via pip-tools
+pip-tools==6.0.1
     # via -r requirements.in
 pluggy==0.13.1
     # via pytest
@@ -108,8 +110,6 @@ pycparser==2.20
     # via cffi
 pydispatcher==2.0.5
     # via scrapy
-pyhamcrest==2.0.2
-    # via twisted
 pyopenssl==20.0.1
     # via scrapy
 pyparsing==2.4.7
@@ -118,7 +118,7 @@ pyparsing==2.4.7
     #   rdflib
 pyrdfa3==3.5.3
     # via extruct
-pytest==6.2.1
+pytest==6.2.2
     # via -r requirements.in
 python-dateutil==2.8.1
     # via -r requirements.in
@@ -144,7 +144,6 @@ service-identity==18.1.0
 six==1.15.0
     # via
     #   automat
-    #   cryptography
     #   extruct
     #   html5lib
     #   isodate
@@ -155,15 +154,17 @@ six==1.15.0
     #   rdflib
     #   validators
     #   w3lib
-soupsieve==2.1
+soupsieve==2.2.1
     # via beautifulsoup4
 toml==0.10.2
-    # via pytest
-twisted==20.3.0
+    # via
+    #   pep517
+    #   pytest
+twisted==21.2.0
     # via scrapy
 twitter==1.18.0
     # via -r requirements.in
-urllib3==1.26.2
+urllib3==1.26.4
     # via
     #   elasticsearch
     #   requests
