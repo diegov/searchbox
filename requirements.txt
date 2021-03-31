@@ -76,7 +76,7 @@ jstyleson==0.0.2
     # via extruct
 links-from-link-header==0.1.0
     # via -r requirements.in
-lxml==4.6.2
+lxml==4.6.3
     # via
     #   extruct
     #   html-text
