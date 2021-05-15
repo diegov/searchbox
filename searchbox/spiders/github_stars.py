@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+import json
+
 import scrapy
 from scrapy.http import JsonRequest
-import json
-import links_from_header
 
-from ..secrets_loader import SECRETS
+from ..extractors import (body_text, extract_next_page_link, fix_url,
+                          is_processable)
 from ..items import CrawlItem
-from ..extractors import body_text, is_processable, fix_url
+from ..secrets_loader import SECRETS
 
 usernames = SECRETS.github['users_to_crawl']
 
@@ -29,19 +30,20 @@ class GithubStarsSpider(scrapy.Spider):
         if not is_processable(response):
             return
 
-        items = json.loads(response.body_as_unicode())
+        items = json.loads(response.text)
         for starred in items:
             api_url = starred['url']
             html_url = starred['html_url']
             name = starred['name']
             description = starred['description']
-            star_item = CrawlItem(name=name, description=description, url=html_url)
+            star_item = CrawlItem(name=name, description=description,
+                                  url=html_url)
             req = JsonRequest(url=api_url, callback=self.parse_repo)
             req.meta['item'] = star_item
             req.meta['dont_obey_robotstxt'] = True
             yield req
 
-        next_page_url = self.extract_next_page(response.headers)
+        next_page_url = extract_next_page_link(response.headers)
         if next_page_url is not None:
             req = JsonRequest(url=next_page_url, callback=self.parse_stars)
             req.meta['dont_obey_robotstxt'] = True
@@ -63,14 +65,14 @@ class GithubStarsSpider(scrapy.Spider):
             yield star_item
             return
 
-        item = json.loads(response.body_as_unicode())
+        item = json.loads(response.text)
 
-        # TODO: Topics API is in beta, update this to incldue topics once that's stable
-        # https://developer.github.com/v3/repos#list-all-topics-for-a-repository
-        
         last_update = item['updated_at']
         
         star_item['last_update'] = last_update
+
+        if 'topics' in item:
+            star_item['repository_tags'] = item['topics']
 
         yield star_item
 
@@ -95,26 +97,7 @@ class GithubStarsSpider(scrapy.Spider):
         github_url = response.meta['github_url']
 
         title, content, html = body_text(response)
-        item = CrawlItem(url=url, github_backlink=github_url, content=content, html=html)
+        item = CrawlItem(url=url, repository_backlink=github_url, content=content, html=html)
         if title:
             item['name'] = title
         yield item
-
-    def extract_next_page(self, headers):
-        links = None
-        if b'Link' in headers:
-            links = headers[b'Link']
-        elif 'Link' in headers:
-            links = headers['Link']
-
-        if links is None:
-            return None
-        elif isinstance(links, bytes):
-            links = links.decode('utf-8')
-
-        results = links_from_header.extract(links)
-        
-        if 'next' in results:
-            return results['next']
-        else:
-            return None

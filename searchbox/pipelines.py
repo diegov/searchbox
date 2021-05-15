@@ -7,10 +7,10 @@
 
 import base64
 from w3lib.html import get_base_url
-from items import CrawlItem
+from .items import CrawlItem
 from scrapy import Spider
 import json
-from extractors import MicroformatExtractor
+from .extractors import MicroformatExtractor
 
 
 class SearchboxPipeline(object):

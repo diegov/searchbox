@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
+import json
+import re
+from datetime import datetime
+from typing import Dict
+from urllib.parse import urlencode
+
 import scrapy
 from scrapy.http import Request
-from urllib.parse import urlencode
-import json
-from datetime import datetime
 
-from ..secrets_loader import SECRETS
-from ..items import CrawlItem
 from ..extractors import body_text, is_processable
-from typing import Dict
-import re
+from ..items import CrawlItem
+from ..secrets_loader import SECRETS
 
 RESULTS_PER_REQUEST = 50
 
@@ -36,7 +37,7 @@ class PocketSpider(scrapy.Spider):
     def parse_pocket_page(self, response):
         if not is_processable(response):
             return
-        result = json.loads(response.body_as_unicode())
+        result = json.loads(response.text)
         if result['status'] != 1:
             return
 

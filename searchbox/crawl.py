@@ -8,6 +8,7 @@ settings = get_project_settings()
 process = CrawlerProcess(settings)
 
 process.crawl('github_stars')
+process.crawl('gitlab_stars')
 process.crawl('pocket')
 process.crawl('twitter_favs')
 
