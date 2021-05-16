@@ -1,12 +1,20 @@
-from scrapy.http import HtmlResponse, TextResponse
-import validators
-from mimeparse import parse_mime_type
-import extruct
-from w3lib.html import get_base_url
-from typing import Optional, Any, Dict, Iterable, Iterable
-from urllib.parse import urlsplit, urlunsplit, SplitResult
 import datetime
+from typing import Any, Dict, Iterable, Optional
+from urllib.parse import SplitResult, urljoin, urlsplit, urlunsplit
+
 import dateutil.parser
+import extruct
+import links_from_header
+import markdown
+import parsel
+import scrapy.utils.response as scrapy_response
+import validators
+from lxml import etree
+from mimeparse import parse_mime_type
+from scrapy.http import HtmlResponse, TextResponse
+from w3lib.html import get_base_url
+
+TEXT_XPATH = "//body//text()"
 
 
 def fix_url(url):
@@ -24,7 +32,15 @@ def fix_url(url):
 
 
 def is_github_html(response):
-    content_type = response.headers['Content-Type'].decode('utf-8')
+    content_type = None
+    if 'Content-Type' in response.headers:
+        content_type = response.headers['Content-Type'].decode('utf-8')
+    elif 'content-type' in response.headers:
+        content_type = response.headers['content-type'].decode('utf-8')
+
+    if content_type is None:
+        return False
+
     parts = parse_mime_type(content_type)
     return len(parts) > 1 and parts[0] == 'application' and \
         parts[1].startswith('vnd.github.') and parts[1].endswith('.html')
@@ -40,17 +56,20 @@ def body_text(response):
 
     if isinstance(response, HtmlResponse) or is_github_html(response):
         text_data = '\n'.join(
-            response.xpath("//body//text()").extract()).strip()
+            x.strip()
+            for x in response.xpath(TEXT_XPATH).extract()).strip()
         title = ' '.join(
-            response.xpath("//head/title//text()").extract()).strip()
+            x.strip()
+            for x in response.xpath("//head/title//text()").extract()).strip()
         html = response.text
     elif isinstance(response, TextResponse):
         text_data = response.text
     else:
         text_data = None
 
-    # 20MB assuming 2 bytes per character, not the worst possible case for UTF-8 since some
-    # characters encode as 4 bytes, but pretty safe based on normal text
+    # 20MB assuming 2 bytes per character, not the worst possible case for
+    # UTF-8 since some characters encode as 4 bytes, but pretty safe based
+    # on normal text
     max_length = 10485760
     if text_data and len(text_data) > max_length:
         text_data = text_data[:max_length]
@@ -76,8 +95,8 @@ def normalise_tag(tag_source: str) -> Iterable[str]:
        or parts[0] == 'プラットフォーム' or parts[0] == 'subject':
         parts = parts[1:]
 
-    # Some sites use tags as general attributes, eg. lite:true, elevated:false, etc...
-    # we'll ignore those
+    # Some sites use tags as general attributes, eg. lite:true, elevated:false,
+    # etc... we'll ignore those
     if len(parts) > 1:
         return
 
@@ -130,26 +149,12 @@ class MicroformatExtractor:
 
         return None
 
-    def get_tags(self):
+    def get_tags(self) -> Iterable[str]:
         if 'json-ld' in self.data:
-            for element in self.data['json-ld']:
-                if 'keywords' in element:
-                    for keyword in parse_tag_list(element['keywords']):
-                        yield keyword
-                if 'mainEntity' in element and 'keywords' in element[
-                        'mainEntity']:
-                    for keyword in parse_tag_list(
-                            element['mainEntity']['keywords']):
-                        yield keyword
+            yield from get_json_ld_tags(self.data['json-ld'])
 
         if 'rdfa' in self.data:
-            for element in self.data['rdfa']:
-                yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tag', preprocess=normalise_tag)
-                yield from iterate_rdfa_tags(element, 'ogp.me/ns/video#tag', preprocess=normalise_tag)
-                yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tag', preprocess=normalise_tag)
-                yield from iterate_rdfa_tags(element, 'ogp.me/ns#tags', preprocess=normalise_tag)
-                yield from iterate_rdfa_tags(element, 'ogp.me/ns#tag', preprocess=normalise_tag)
-                yield from iterate_rdfa_tags(element, 'ogp.me/ns/book#tag', preprocess=normalise_tag)
+            yield from get_rdfs_tags(self.data['rdfa'])
 
         if 'microdata' in self.data:
             if 'keywords' in self.data['microdata']:
@@ -192,6 +197,34 @@ def compare_urls(a: str, b: str, ignore_protocol=True) -> bool:
     return url_a == url_b
 
 
+def get_json_ld_tags(data: Dict[str, str]) -> Iterable[str]:
+    for element in data:
+        if 'keywords' in element:
+            for keyword in parse_tag_list(element['keywords']):
+                yield keyword
+        if 'mainEntity' in element and 'keywords' in element[
+                'mainEntity']:
+            for keyword in parse_tag_list(
+                    element['mainEntity']['keywords']):
+                yield keyword
+
+
+def get_rdfs_tags(data: Dict[str, str]) -> Iterable[str]:
+    for element in data:
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tag',
+                                     preprocess=normalise_tag)
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns/video#tag',
+                                     preprocess=normalise_tag)
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tag',
+                                     preprocess=normalise_tag)
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns#tags',
+                                     preprocess=normalise_tag)
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns#tag',
+                                     preprocess=normalise_tag)
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns/book#tag',
+                                     preprocess=normalise_tag)
+    
+
 def iterate_rdfa_tags(rdfa_element, attribute, preprocess=None):
     for protocol in ['http', 'https']:
         key = "{}://{}".format(protocol, attribute)
@@ -204,7 +237,7 @@ def iterate_rdfa_tags(rdfa_element, attribute, preprocess=None):
                         yield tag['@value']
 
 
-def json_ld_matches_url(element, url, match_by_default=False) -> bool:
+def json_ld_matches_url(element, url, match_by_default: bool = False) -> bool:
     if 'url' in element:
         return compare_urls(element['url'], url, ignore_protocol=True)
 
@@ -244,7 +277,78 @@ def try_parse_date(dt_str: str) -> datetime.datetime:
     for attempt in attempts:
         try:
             return attempt(cleaned_up)
-        except Exception as ignored:
+        except Exception:
             pass
 
     return None
+
+
+def get_text_from_markdown(response: TextResponse,
+                           content: str) -> str:
+    html = _md_to_html_doc(content)
+    return get_text_from_html(response, html)
+
+
+def get_text_from_html(response: TextResponse,
+                       html: str, is_snippet: bool = False) -> str:
+    base_url = scrapy_response.get_base_url(response)
+    if is_snippet:
+        html = '<html>{}</html>'.format(html)
+    selector = parsel.Selector(text=html, base_url=base_url)
+    return ' '.join(x.strip() for x in
+                    selector.xpath(TEXT_XPATH).extract()).strip()
+
+
+def get_links_from_markdown(response: TextResponse,
+                            content: str) -> Iterable[str]:
+    html = _md_to_html_doc(content)
+    yield from get_links_from_html(response, html)
+
+
+def get_links_from_html(response: TextResponse, html: str) -> Iterable[str]:
+    base_url = scrapy_response.get_base_url(response)
+    doc = etree.fromstring(html, base_url=base_url)
+    for link in doc.xpath('//a'):
+        url = link.get('href')
+        full_url = urljoin(base_url, url)
+        if full_url.startswith('http:') or full_url.startswith('https:'):
+            yield full_url
+
+
+def _md_to_html_doc(content: str) -> str:
+    doc_content = markdown.markdown(content, output_format='html')
+    return '<html>{}</html>'.format(doc_content)
+
+
+def extract_next_page_link(headers: Dict[Any, Any]) -> Optional[str]:
+    links = None
+        
+    if b'Link' in headers:
+        links = headers[b'Link']
+    elif 'Link' in headers:
+        links = headers['Link']
+    elif b'link' in headers:
+        links = headers[b'link']
+    elif 'link' in headers:
+        links = headers['link']
+    else:
+        # Try all possible casings
+        for header in headers.keys():
+            header_name = header
+            if isinstance(header, bytes):
+                header_name = header.decode('utf-8')
+            if header_name.lower() == 'link':
+                links = headers[header]
+                break
+
+    if links is None:
+        return None
+    elif isinstance(links, bytes):
+        links = links.decode('utf-8')
+
+    results: Dict[str, str] = links_from_header.extract(links)
+
+    if 'next' in results:
+        return results['next']
+    else:
+        return None

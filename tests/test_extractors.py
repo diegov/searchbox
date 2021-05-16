@@ -1,4 +1,6 @@
 from searchbox.extractors import fix_url, is_github_html, compare_urls
+from searchbox.extractors import get_links_from_markdown, get_text_from_markdown
+from scrapy.http import TextResponse
 
 
 def test_fix_url_missing_protocol():
@@ -41,3 +43,34 @@ def test_can_compare_different_urls_ignoring_protocol():
     a = 'http://www.test.com/test/'
     b = 'http://www.test.com/test/?path=3'
     assert not compare_urls(a, b, ignore_protocol=True)
+
+
+def test_can_extract_links_from_markdown():
+    response = TextResponse(url='https://test.com')
+    md = """
+[Testing](/data/example.json)
+# Section 1
+Look at this:
+[other](file:///dont_care_about_this.txt)
+[](http://www.example2.com/testing?a=3&b=3)
+"""
+    links = list(get_links_from_markdown(response, md))
+    assert len(links) == 2
+    assert links[0] == 'https://test.com/data/example.json'
+    assert links[1] == 'http://www.example2.com/testing?a=3&b=3'
+
+
+def test_can_text_from_markdown():
+    response = TextResponse(url='https://test.com')
+    md = """
+[Testing](/data/example.json)
+# Section 1
+Look at this:
+[other](file:///dont_care_about_this.txt)
+[](http://www.example2.com/testing?a=3&b=3)
+
+Another piece of text
+"""
+    text = get_text_from_markdown(response, md)
+    assert text == \
+        'Testing  Section 1  Look at this: other   Another piece of text'
