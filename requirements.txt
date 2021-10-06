@@ -112,12 +112,12 @@ protego==0.1.16
     # via scrapy
 py==1.10.0
     # via pytest
-pyasn1-modules==0.2.8
-    # via service-identity
 pyasn1==0.4.8
     # via
     #   pyasn1-modules
     #   service-identity
+pyasn1-modules==0.2.8
+    # via service-identity
 pycparser==2.20
     # via cffi
 pydispatcher==2.0.5
@@ -138,16 +138,16 @@ python-mimeparse==1.6.0
     # via -r requirements.in
 queuelib==1.6.1
     # via scrapy
-rdflib-jsonld==0.5.0
-    # via extruct
 rdflib==5.0.0
     # via
     #   extruct
     #   pyrdfa3
     #   rdflib-jsonld
+rdflib-jsonld==0.5.0
+    # via extruct
 requests==2.25.1
     # via mf2py
-scrapy==2.5.0
+scrapy==2.5.1
     # via
     #   -r requirements.in
     #   scrapyelasticsearch
