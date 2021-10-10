@@ -2,6 +2,8 @@
 import sys
 from elasticsearch import Elasticsearch
 import dateutil.parser
+from statistics import stdev, mean
+
 
 INDEX_NAME = "scrapy"
 
@@ -50,9 +52,18 @@ def run_query(query_terms):
         }
     })
 
+    # TODO: There's probably some corpus-wide value we could get from ES instead of doing this
+    # for just 30 results.
+    scores = [i['_score'] for i in res['hits']['hits']]
+    mu = mean(scores)
+    deviation = stdev(scores, xbar=mu)
+
+    good_score = mu + deviation
+
     print("Got %d Hits:" % res['hits']['total']['value'])
-    for hit in res['hits']['hits']:
+    for hit in reversed(res['hits']['hits']):
         item = hit['_source']
+        score = hit['_score']
 
         def get_value(*keys):
             if len(keys) == 0: return ''
@@ -65,9 +76,14 @@ def run_query(query_terms):
 
         name = get_value('name', 'description', 'content')
 
-        print('({}) {}: {}'.format(year(
+        if score >= good_score:
+            icon = '★'
+        else:
+            icon = ''
+
+        print('({}) {:3.1f}{} {}: {}'.format(year(
             get_value('last_update', 'article_published_date')),
-                                   name, item['url']))
+                                             score, icon, name, item['url']))
 
 
 def year(dt) -> str:
