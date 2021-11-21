@@ -16,6 +16,8 @@ class GithubStarsSpider(scrapy.Spider):
     name = 'github_stars'
     http_user = SECRETS.github['username']
     http_pass = SECRETS.github['personal_access_token']
+    http_auth_domain = 'api.github.com'
+
     handle_httpstatus_list = [x for x in range(400, 600)]
 
     def start_requests(self):

@@ -2,11 +2,18 @@ import os
 from os.path import expanduser
 from urllib.parse import urlparse, ParseResult
 import importlib.util
+from importlib.abc import Loader
 
 home = expanduser("~")
 secrets_path = os.path.abspath(os.path.join(home, '.config/searchbox/secrets.py'))
 spec = importlib.util.spec_from_file_location(secrets_path, secrets_path)
+if spec is None:
+    raise Exception('Can\'t find module at path {}'.format(secrets_path))
+
 secrets = importlib.util.module_from_spec(spec)
+assert secrets is not None
+
+assert isinstance(spec.loader, Loader) 
 spec.loader.exec_module(secrets)
 
 SECRETS = secrets

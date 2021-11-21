@@ -45,12 +45,13 @@ class PocketSpider(scrapy.Spider):
         for key in sorted(items.keys()):
             item = items[key]
             
-            name = item['resolved_title']
-            description = item['excerpt']
+            name = item.get('resolved_title') or item.get('given_title')
+            description = item.get('excerpt')
             last_update = datetime.fromtimestamp(int(item['time_added'])).isoformat()
 
-            url = item['resolved_url']
+            url = item.get('resolved_url')
             alt_url = item['given_url']
+
             if not url:
                 url = alt_url
 

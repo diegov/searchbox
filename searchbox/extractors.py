@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, TypeVar
 from urllib.parse import SplitResult, urljoin, urlsplit, urlunsplit
 
 import dateutil.parser
@@ -105,6 +105,13 @@ def normalise_tag(tag_source: str) -> Iterable[str]:
         yield base_tag
 
 
+T = TypeVar('T')
+
+
+def filter_none(elements: Iterable[T]) -> Iterable[T]:
+    return (x for x in elements if x is not None)
+
+
 class MicroformatExtractor:
     def __init__(self,
                  url: str,
@@ -126,23 +133,26 @@ class MicroformatExtractor:
     def get_published_date(self):
         def get_attribute_list():
             if 'rdfa' in self.data:
-                for element in self.data['rdfa']:
+                for element in filter_none(self.data['rdfa']):
                     yield from iterate_rdfa_tags(
                         element, 'ogp.me/ns/article#published_time')
 
-            if 'json-ld' in self.data:
-                for element in self.data['json-ld']:
+            json_ld_elements = self.data.get('json-ld')
+            if json_ld_elements:
+                for element in filter_none(json_ld_elements):
                     if 'datePublished' in element and json_ld_matches_url(
                             element, self.url, match_by_default=True):
                         yield from iterate_elements(element['datePublished'])
-                    if '@graph' in element:
-                        for graph_element in element['@graph']:
+
+                    graph_elements = element.get('@graph')
+                    if graph_elements:
+                        for graph_element in filter_none(graph_elements):
                             if 'datePublished' in graph_element and \
                                json_ld_matches_url(graph_element, self.url):
                                 yield from iterate_elements(
                                     graph_element['datePublished'])
 
-        for candidate in get_attribute_list():
+        for candidate in filter_none(get_attribute_list()):
             dt = try_parse_date(candidate)
             if dt is not None:
                 return dt
@@ -159,13 +169,13 @@ class MicroformatExtractor:
         if 'microdata' in self.data:
             if 'keywords' in self.data['microdata']:
                 keywords = self.data['microdata']['keywords']
-                for tag in parse_tag_list(keywords):
+                for tag in filter_none(parse_tag_list(keywords)):
                     yield tag
 
         if 'opengraph' in self.data:
             if 'article:tag' in self.data['opengraph']:
-                for tag in parse_tag_list(
-                        self.data['opengraph']['article:tag']):
+                for tag in filter_none(parse_tag_list(
+                        self.data['opengraph']['article:tag'])):
                     yield tag
 
 
@@ -198,19 +208,19 @@ def compare_urls(a: str, b: str, ignore_protocol=True) -> bool:
 
 
 def get_json_ld_tags(data: Dict[str, str]) -> Iterable[str]:
-    for element in data:
+    for element in filter_none(data):
         if 'keywords' in element:
-            for keyword in parse_tag_list(element['keywords']):
+            for keyword in filter_none(parse_tag_list(element['keywords'])):
                 yield keyword
         if 'mainEntity' in element and 'keywords' in element[
                 'mainEntity']:
-            for keyword in parse_tag_list(
-                    element['mainEntity']['keywords']):
+            for keyword in filter_none(parse_tag_list(
+                    element['mainEntity']['keywords'])):
                 yield keyword
 
 
 def get_rdfs_tags(data: Dict[str, str]) -> Iterable[str]:
-    for element in data:
+    for element in filter_none(data):
         yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tag',
                                      preprocess=normalise_tag)
         yield from iterate_rdfa_tags(element, 'ogp.me/ns/video#tag',
@@ -229,7 +239,7 @@ def iterate_rdfa_tags(rdfa_element, attribute, preprocess=None):
     for protocol in ['http', 'https']:
         key = "{}://{}".format(protocol, attribute)
         if key in rdfa_element:
-            for tag in rdfa_element[key]:
+            for tag in filter_none(rdfa_element[key]):
                 if '@value' in tag:
                     if preprocess is not None:
                         yield from preprocess(tag['@value'])
@@ -257,10 +267,10 @@ def iterate_elements(list_or_obj) -> Iterable[Any]:
 
 def parse_tag_list(list_or_str) -> Iterable[str]:
     if isinstance(list_or_str, list):
-        for tag in list_or_str:
+        for tag in filter_none(list_or_str):
             yield from normalise_tag(tag)
     else:
-        for tag in list_or_str.split(','):
+        for tag in filter_none(list_or_str.split(',')):
             yield from normalise_tag(tag)
 
 
