@@ -19,7 +19,9 @@ class SearchboxPipeline(object):
 
         if 'html' in item:
             try:
-                html = item['html']
+                html = item.get('html')
+                if not html:
+                    html = '<html></html>'
                 base_url = get_base_url(html, url)
                 # TODO: Fix 2021-05-15 12:55:25 [pocket] ERROR: to_unicode must receive a bytes, str or unicode object, got NoneType
                 # Traceback (most recent call last):

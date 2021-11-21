@@ -71,8 +71,8 @@ class GitlabStarsSpider(scrapy.Spider):
 
             yield star_item
 
-            if 'readme_url' in star_item:
-                url = star_item['readme_url'] + '?format=json'
+            if 'readme_url' in starred:
+                url = starred['readme_url'] + '?format=json'
                 readme_req = scrapy.Request(url=url,
                                             callback=self.parse_readme)
                 readme_req.meta['url'] = star_item['url']
@@ -90,7 +90,7 @@ class GitlabStarsSpider(scrapy.Spider):
         if is_processable(response):
             url = response.meta['url']
             readme = json.loads(response.text)
-            html = readme['.html']
+            html = readme['html']
             content = get_text_from_html(response, html, is_snippet=True)
             yield CrawlItem(url=url, content=content, html=html)
 
