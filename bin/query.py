@@ -56,7 +56,10 @@ def run_query(query_terms):
     # for just 30 results.
     scores = [i['_score'] for i in res['hits']['hits']]
     mu = mean(scores)
-    deviation = stdev(scores, xbar=mu)
+    if len(scores) > 1:
+        deviation = stdev(scores, xbar=mu)
+    else:
+        deviation = 0.0
 
     good_score = mu + deviation
 
