@@ -11,3 +11,7 @@ twitter
 python-dateutil
 extruct
 markdown
+
+# Dev
+types-Markdown
+types-python-dateutil
