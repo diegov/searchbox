@@ -41,14 +41,11 @@ def run_query(query_terms):
 
     es = init_elastic()
 
-    res = es.search(index=INDEX_NAME, body={
-        "size": 30,
-        "query": {
-            "query_string": {
-                "query": query_term,
-                "fuzziness": "AUTO:2,6",
-                "type": "best_fields"
-            }
+    res = es.search(index=INDEX_NAME, size=30, query={
+        "query_string": {
+            "query": query_term,
+            "fuzziness": "AUTO:2,6",
+            "type": "best_fields"
         }
     })
 
