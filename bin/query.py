@@ -55,7 +55,12 @@ def run_query(query_terms):
     # TODO: There's probably some corpus-wide value we could get from ES instead of doing this
     # for just 30 results.
     scores = [i['_score'] for i in res['hits']['hits']]
-    mu = mean(scores)
+
+    if scores:
+        mu = mean(scores)
+    else:
+        mu = 0.0
+
     if len(scores) > 1:
         deviation = stdev(scores, xbar=mu)
     else:
