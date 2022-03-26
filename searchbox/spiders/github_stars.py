@@ -29,7 +29,7 @@ class GithubStarsSpider(scrapy.Spider):
             yield req
 
     def parse_stars(self, response):
-        if not is_processable(response):
+        if not is_processable(response, process_cached=True):
             return
 
         items = json.loads(response.text)

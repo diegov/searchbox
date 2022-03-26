@@ -77,10 +77,10 @@ def body_text(response):
     return (title, text_data, html)
 
 
-def is_processable(response):
+def is_processable(response, process_cached=False):
     status_ok = response.status < 400 and response.status != 304
     is_cached = 'cached' in response.flags
-    return status_ok and not is_cached
+    return status_ok and (process_cached or not is_cached)
 
 
 def normalise_tag(tag_source: str) -> Iterable[str]:
