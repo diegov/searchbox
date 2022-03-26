@@ -33,7 +33,7 @@ class GitlabStarsSpider(scrapy.Spider):
             yield self._prepare_json_request(url, self.parse_user)
 
     def parse_user(self, response):
-        if not is_processable(response):
+        if not is_processable(response, process_cached=True):
             return
 
         users = json.loads(response.text)
@@ -43,7 +43,7 @@ class GitlabStarsSpider(scrapy.Spider):
             yield self._prepare_json_request(url, self.parse_stars)
 
     def parse_stars(self, response):
-        if not is_processable(response):
+        if not is_processable(response, process_cached=True):
             return
 
         try:
