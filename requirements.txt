@@ -16,7 +16,7 @@ automat==20.2.0
     # via twisted
 beautifulsoup4==4.10.0
     # via mf2py
-certifi==2021.10.8
+certifi==2022.12.7
     # via
     #   -r requirements.in
     #   elasticsearch
@@ -59,8 +59,6 @@ idna==3.3
     #   hyperlink
     #   requests
     #   tldextract
-importlib-metadata==4.11.3
-    # via markdown
 incremental==21.3.0
     # via twisted
 iniconfig==1.1.1
@@ -190,8 +188,6 @@ w3lib==1.22.0
     #   scrapy
 webencodings==0.5.1
     # via html5lib
-zipp==3.7.0
-    # via importlib-metadata
 zope-interface==5.4.0
     # via
     #   scrapy
