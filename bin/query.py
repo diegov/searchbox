@@ -7,6 +7,8 @@ from statistics import stdev, mean
 
 INDEX_NAME = "scrapy"
 
+MAX_TITLE_LEN = 54
+
 def main():
     if len(sys.argv) < 2:
         sys.stderr.write('Usage: {} q QUERY TERMS\n'.format(sys.argv[0]))
@@ -79,7 +81,20 @@ def run_query(query_terms):
                     return value.replace('\n', ' ')[:64].strip()
             return get_value(*keys[1:])
 
-        name = get_value('name', 'description', 'content')
+        def get_title_value(*keys, base_value=None) -> str:
+            if len(keys) == 0 or (base_value and len(base_value) >= MAX_TITLE_LEN):
+                return make_title(base_value or '')
+
+            key = keys[0]
+            current = [base_value] if base_value else []
+            if key in item:
+                value = item[key].strip() if item[key] else None
+                if value:
+                    clean_value = value.replace('\n', ' ')[:64].strip()
+                    current += [clean_value]
+            return get_title_value(*keys[1:], base_value=' - '.join(current))
+
+        name = get_title_value('name', 'description', 'content')
 
         if score >= good_score:
             icon = '★'
@@ -89,6 +104,35 @@ def run_query(query_terms):
         print('({}) {:3.1f}{} {}: {}'.format(year(
             get_value('last_update', 'article_published_date')),
                                              score, icon, name, item['url']))
+
+
+def make_title(title: str) -> str:
+    max_len = MAX_TITLE_LEN
+    if len(title) <= max_len:
+        return title
+
+    parts = title.split(' ')
+    result = []
+    total_len = 0
+
+    for i in range(len(parts)):
+        part = parts[i]
+        clean = part.strip()
+
+        if not clean:
+            continue
+
+        new_len = total_len + len(clean)
+        sep_len = 1 if result else 0
+
+        if new_len + sep_len > max_len:
+            result[-1] = result[-1] + '…'
+            break
+
+        result.append(clean)
+        total_len = new_len + sep_len
+
+    return ' '.join(result)
 
 
 def year(dt) -> str:
