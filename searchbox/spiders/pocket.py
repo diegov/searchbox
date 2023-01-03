@@ -2,10 +2,11 @@
 import json
 import re
 from datetime import datetime
-from typing import Dict
+from typing import Any, Dict, Generator, Optional, Union
 from urllib.parse import urlencode
 
 import scrapy
+from scrapy.core.engine import Response
 from scrapy.http import Request
 
 from ..extractors import body_text, is_processable
@@ -15,18 +16,16 @@ from ..secrets_loader import SECRETS
 RESULTS_PER_REQUEST = 50
 
 
-class PocketSpider(scrapy.Spider):
+class PocketSpider(scrapy.Spider):  # type: ignore
     name = 'pocket'
 
     consumer_key = SECRETS.pocket['consumer_key']
     access_token = SECRETS.pocket['access_token']
 
-    def start_requests(self):
-        urls = ['https://getpocket.com/v3/get']
-        for url in urls:
-            yield self.make_pocket_request()
+    def start_requests(self) -> Generator[Request, None, None]:
+        yield self.make_pocket_request()
 
-    def parse_webpage(self, response):
+    def parse_webpage(self, response: Response) -> Generator[CrawlItem, None, None]:
         if not is_processable(response):
             return
         url = response.meta['url']
@@ -34,7 +33,7 @@ class PocketSpider(scrapy.Spider):
         _, content, html = body_text(response)
         yield CrawlItem(url=url, content=content, html=html)
 
-    def parse_pocket_page(self, response):
+    def parse_pocket_page(self, response: Response) -> Generator[Union[CrawlItem, Request], None, None]:
         if not is_processable(response):
             return
         result = json.loads(response.text)
@@ -72,7 +71,7 @@ class PocketSpider(scrapy.Spider):
         if len(items) > 0:
             yield self.make_pocket_request(response)
 
-    def make_pocket_request(self, previous_page=None):
+    def make_pocket_request(self, previous_page: Optional[Response] = None) -> Request:
         offset = 0 if previous_page is None else previous_page.meta['next_offset']
         
         post_data = {'consumer_key': PocketSpider.consumer_key,
@@ -94,7 +93,7 @@ class PocketSpider(scrapy.Spider):
         return req
 
 
-def encode_post_data(data: Dict[str, any]):
+def encode_post_data(data: Dict[str, Any]) -> str:
     result = []
     for k, v in data.items():
         result.append((str(k), str(v)))

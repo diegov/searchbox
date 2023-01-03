@@ -76,7 +76,7 @@ ITEM_PIPELINES = {
     'scrapyelasticsearch.scrapyelasticsearch.ElasticSearchPipeline': 1
 }
 
-def get_elastic_url():
+def get_elastic_url() -> str:
     from .secrets_loader import get_elastic_authenticated_url
     return get_elastic_authenticated_url()
 

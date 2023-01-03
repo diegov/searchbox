@@ -5,16 +5,14 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-import base64
 from w3lib.html import get_base_url
 from .items import CrawlItem
 from scrapy import Spider
-import json
 from .extractors import MicroformatExtractor
 
 
 class SearchboxPipeline(object):
-    def process_item(self, item: CrawlItem, spider: Spider):
+    def process_item(self, item: CrawlItem, spider: Spider) -> CrawlItem:
         url = item['url']
 
         if 'html' in item:
@@ -50,7 +48,7 @@ class SearchboxPipeline(object):
 
 
 class CleanupPipeline(object):
-    def process_item(self, item: CrawlItem, spider: Spider):
+    def process_item(self, item: CrawlItem, _spider: Spider) -> CrawlItem:
         if 'html' in item:
             del item['html']
 

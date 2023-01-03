@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from typing import List, Set
 import scrapy
 
 
-class CrawlItem(scrapy.Item):
+class CrawlItem(scrapy.Item):  # type: ignore
     name = scrapy.Field()
     description = scrapy.Field()
     url = scrapy.Field()
@@ -19,8 +20,8 @@ class CrawlItem(scrapy.Item):
     article_published_date = scrapy.Field()
     html = scrapy.Field()
 
-    def get_all_tags(self):
-        all_tags = set()
+    def get_all_tags(self) -> List[str]:
+        all_tags: Set[str] = set()
         all_tags.update(self.get('twitter_tags') or [])
         all_tags.update(self.get('article_tags') or [])
         all_tags.update(self.get('pocket_tags') or [])

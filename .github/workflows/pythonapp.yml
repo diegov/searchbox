@@ -15,15 +15,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: '3.10'
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "18.4.0"
+    - uses: abbbi/github-actions-tune@0b48641ceb645d4ad4573b0d17b770d85770f9c7
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip &&
+          pip install -r requirements.txt
+    - name: Run typecheck
+      run: pip install mypy pyright && ./runtypecheck.sh
     - name: Lint with flake8
       run: |
         pip install flake8

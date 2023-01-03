@@ -1,4 +1,4 @@
-from searchbox.extractors import fix_url, is_github_html, compare_urls
+from searchbox.extractors import MicroformatExtractor, fix_url, is_github_html, compare_urls
 from searchbox.extractors import get_links_from_markdown, get_text_from_markdown
 from scrapy.http import TextResponse
 
@@ -74,3 +74,25 @@ Another piece of text
     text = get_text_from_markdown(response, md)
     assert text == \
         'Testing  Section 1  Look at this: other   Another piece of text'
+
+
+def test_can_extract_rdfa_tags():
+    html: str = """<html>
+<head>
+<meta property='og:type' content='article' />
+<meta property='article:tag' content='technology' />
+<meta property='article:tag' content='oranges' />
+</head>
+<body>
+<div vocab="http://schema.org/" typeof="Person">
+<span>Hello</span>
+</div>
+</body>
+</html>
+    """
+
+    extractor = MicroformatExtractor('https://rdfa.info/play/', html=html)
+    tags = tuple(sorted(extractor.get_tags()))
+
+    assert tags == ('oranges', 'technology')
+

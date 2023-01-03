@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
+from typing import Any, Generator, Union
 
 import scrapy
-from scrapy.http import JsonRequest
+from scrapy.core.engine import Request, Response
+from scrapy.http import JsonRequest, TextResponse
 
 from ..extractors import (body_text, extract_next_page_link, fix_url,
                           get_links_from_markdown, get_text_from_html,
@@ -15,24 +17,24 @@ usernames = SECRETS.gitlab['users_to_crawl']
 token = SECRETS.gitlab['personal_access_token']
 
 
-class GitlabStarsSpider(scrapy.Spider):
+class GitlabStarsSpider(scrapy.Spider):  # type: ignore
     name = 'gitlab_stars'
     handle_httpstatus_list = [x for x in range(400, 600)]
 
-    def _prepare_json_request(self, url: str, callback: any) -> JsonRequest:
+    def _prepare_json_request(self, url: str, callback: Any) -> JsonRequest:
         req = JsonRequest(url=url, callback=callback)
         req.headers['PRIVATE-TOKEN'] = token
         # API call, don't need to check robots
         req.meta['dont_obey_robotstxt'] = True
         return req
 
-    def start_requests(self):
+    def start_requests(self) -> Generator[Request, None, None]:
         for username in usernames:
             template = 'https://gitlab.com/api/v4/users?username={}'
             url = template.format(username)
             yield self._prepare_json_request(url, self.parse_user)
 
-    def parse_user(self, response):
+    def parse_user(self, response: Response) -> Generator[Request, None, None]:
         if not is_processable(response, process_cached=True):
             return
 
@@ -42,7 +44,7 @@ class GitlabStarsSpider(scrapy.Spider):
             url = template.format(user['id'])
             yield self._prepare_json_request(url, self.parse_stars)
 
-    def parse_stars(self, response):
+    def parse_stars(self, response: TextResponse) -> Generator[Union[Request, CrawlItem], None, None]:
         if not is_processable(response, process_cached=True):
             return
 
@@ -86,7 +88,7 @@ class GitlabStarsSpider(scrapy.Spider):
                     req.meta['gitlab_url'] = star_item['url']
                     yield req
 
-    def parse_readme(self, response):
+    def parse_readme(self, response: TextResponse) -> Generator[CrawlItem, None, None]:
         if is_processable(response):
             url = response.meta['url']
             readme = json.loads(response.text)
@@ -94,7 +96,7 @@ class GitlabStarsSpider(scrapy.Spider):
             content = get_text_from_html(response, html, is_snippet=True)
             yield CrawlItem(url=url, content=content, html=html)
 
-    def parse_homepage(self, response):
+    def parse_homepage(self, response: Response) -> Generator[CrawlItem, None, None]:
         if not is_processable(response):
             return
 
