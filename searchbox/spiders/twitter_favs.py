@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from typing import Generator, Optional, Union
 import scrapy
+from scrapy.core.engine import Response
 from scrapy.http import Request
 from twitter import OAuth
 import json
@@ -11,7 +13,7 @@ from ..items import CrawlItem
 RESULTS_PER_REQUEST = 100
 
 
-class TwitterFavsSpider(scrapy.Spider):
+class TwitterFavsSpider(scrapy.Spider):  # type: ignore
     name = 'twitter_favs'
 
     consumer_key = SECRETS.twitter['consumer_key']
@@ -19,10 +21,10 @@ class TwitterFavsSpider(scrapy.Spider):
     access_token_key = SECRETS.twitter['access_token_key']
     access_token_secret = SECRETS.twitter['access_token_secret']
 
-    def start_requests(self):
+    def start_requests(self) -> Generator[Request, None, None]:
         yield self.make_favourites_request()
 
-    def make_favourites_request(self, max_id=None):
+    def make_favourites_request(self, max_id: Optional[int] = None) -> Request:
         params = {'count': str(RESULTS_PER_REQUEST),
                   'tweet_mode': 'extended'}
         if max_id is not None:
@@ -41,7 +43,10 @@ class TwitterFavsSpider(scrapy.Spider):
         req.meta['dont_obey_robotstxt'] = True
         return req
 
-    def parse_favourites(self, response):
+    def parse_favourites(
+            self,
+            response: Response
+    ) -> Generator[Union[Request, CrawlItem], None, None]:
         if not is_processable(response):
             return
 
@@ -57,7 +62,7 @@ class TwitterFavsSpider(scrapy.Spider):
             url = 'https://twitter.com/{}/status/{}'.format(fav['user']['screen_name'], fav['id'])
             date_str = fav['created_at']
             created_at = try_parse_date(date_str)
-            last_update = created_at.isoformat()
+            last_update = created_at.isoformat() if created_at else None
 
             if hashtags:
                 yield CrawlItem(url=url, content=content, last_update=last_update, twitter_tags=hashtags)
@@ -78,7 +83,7 @@ class TwitterFavsSpider(scrapy.Spider):
         yield self.make_favourites_request(max_id=max_id)
 
 
-    def parse_webpage(self, response):
+    def parse_webpage(self, response: Response) -> Generator[CrawlItem, None, None]:
         if not is_processable(response):
             return
         url = response.meta['url']
@@ -86,5 +91,5 @@ class TwitterFavsSpider(scrapy.Spider):
         title, content, html = body_text(response)
         item = CrawlItem(url=url, content=content, twitter_backlink=twitter_url, html=html)
         if title:
-            item['name'] = title
+            item.name = title
         yield item

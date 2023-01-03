@@ -5,7 +5,11 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-from scrapy import signals
+from collections.abc import Iterable
+from typing import Any, Dict, Generator, Type, Union
+from scrapy import Item, Request, Spider, signals
+from scrapy.core.engine import Response
+from scrapy.crawler import Crawler
 
 
 class SearchboxSpiderMiddleware(object):
@@ -14,20 +18,28 @@ class SearchboxSpiderMiddleware(object):
     # passed objects.
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(
+            cls: Type['SearchboxSpiderMiddleware'],
+            crawler: Crawler
+    ) -> 'SearchboxSpiderMiddleware':
         # This method is used by Scrapy to create your spiders.
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
-    def process_spider_input(self, response, spider):
+    def process_spider_input(self, _response: Any, _spider: Any) -> None:
         # Called for each response that goes through the spider
         # middleware and into the spider.
 
         # Should return None or raise an exception.
         return None
 
-    def process_spider_output(self, response, result, spider):
+    def process_spider_output(
+            self,
+            _response: Any,
+            result: Iterable[Union[Request, Dict[str, Any], Item]],
+            _spider: Any
+    ) -> Generator[Union[Request, Dict[str, Any], Item], None, None]:
         # Called with the results returned from the Spider, after
         # it has processed the response.
 
@@ -35,7 +47,7 @@ class SearchboxSpiderMiddleware(object):
         for i in result:
             yield i
 
-    def process_spider_exception(self, response, exception, spider):
+    def process_spider_exception(self, _response: Any, _exception: Any, _spider: Any) -> None:
         # Called when a spider or process_spider_input() method
         # (from other spider middleware) raises an exception.
 
@@ -43,7 +55,7 @@ class SearchboxSpiderMiddleware(object):
         # or Item objects.
         pass
 
-    def process_start_requests(self, start_requests, spider):
+    def process_start_requests(self, start_requests: Iterable[Request], _spider: Any) -> Generator[Request, None, None]:
         # Called with the start requests of the spider, and works
         # similarly to the process_spider_output() method, except
         # that it doesn’t have a response associated.
@@ -52,7 +64,7 @@ class SearchboxSpiderMiddleware(object):
         for r in start_requests:
             yield r
 
-    def spider_opened(self, spider):
+    def spider_opened(self, spider: Spider) -> None:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
@@ -62,13 +74,13 @@ class SearchboxDownloaderMiddleware(object):
     # passed objects.
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls: Type['SearchboxDownloaderMiddleware'], crawler: Crawler) -> 'SearchboxDownloaderMiddleware':
         # This method is used by Scrapy to create your spiders.
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
-    def process_request(self, request, spider):
+    def process_request(self, _request: Any, _spider: Any) -> None:
         # Called for each request that goes through the downloader
         # middleware.
 
@@ -80,7 +92,7 @@ class SearchboxDownloaderMiddleware(object):
         #   installed downloader middleware will be called
         return None
 
-    def process_response(self, request, response, spider):
+    def process_response(self, _request: Any, response: Response, _spider: Any) -> Response:
         # Called with the response returned from the downloader.
 
         # Must either;
@@ -89,7 +101,7 @@ class SearchboxDownloaderMiddleware(object):
         # - or raise IgnoreRequest
         return response
 
-    def process_exception(self, request, exception, spider):
+    def process_exception(self, _request: Any, _exception: Any, _spider: Any) -> None:
         # Called when a download handler or a process_request()
         # (from other downloader middleware) raises an exception.
 
@@ -99,5 +111,5 @@ class SearchboxDownloaderMiddleware(object):
         # - return a Request object: stops process_exception() chain
         pass
 
-    def spider_opened(self, spider):
+    def spider_opened(self, spider: Spider) -> None:
         spider.logger.info('Spider opened: %s' % spider.name)

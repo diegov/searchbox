@@ -18,9 +18,9 @@ spec.loader.exec_module(secrets)
 
 SECRETS = secrets
 
-def get_elastic_authenticated_url():
+def get_elastic_authenticated_url() -> str:
     conn_params = SECRETS.elastic
-    url = conn_params['url']
+    url: str = conn_params['url']
     
     if 'username' in conn_params and conn_params['username']:
         url_parts = urlparse(url)

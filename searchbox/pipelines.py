@@ -5,23 +5,20 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-import base64
+import itemadapter
 from w3lib.html import get_base_url
 from .items import CrawlItem
 from scrapy import Spider
-import json
 from .extractors import MicroformatExtractor
 
 
 class SearchboxPipeline(object):
-    def process_item(self, item: CrawlItem, spider: Spider):
-        url = item['url']
+    def process_item(self, item: CrawlItem, spider: Spider) -> CrawlItem:
+        url = item.url
 
-        if 'html' in item:
+        if url and item.html:
             try:
-                html = item.get('html')
-                if not html:
-                    html = '<html></html>'
+                html = item.html
                 base_url = get_base_url(html, url)
                 # TODO: Fix 2021-05-15 12:55:25 [pocket] ERROR: to_unicode must receive a bytes, str or unicode object, got NoneType
                 # Traceback (most recent call last):
@@ -36,13 +33,13 @@ class SearchboxPipeline(object):
                 extractor = MicroformatExtractor(base_url, html)
                 try:
                     tags = sorted(set(extractor.get_tags()))
-                    item['article_tags'] = tags
+                    item.article_tags = tags
                 except Exception as e:
                     spider.logger.exception(str(e))
 
                 date_published = extractor.get_published_date()
                 if date_published is not None:
-                    item['article_published_date'] = date_published.isoformat()
+                    item.article_published_date = date_published.isoformat()
             except Exception as e:
                 spider.logger.exception(str(e))
 
@@ -50,8 +47,13 @@ class SearchboxPipeline(object):
 
 
 class CleanupPipeline(object):
-    def process_item(self, item: CrawlItem, spider: Spider):
-        if 'html' in item:
-            del item['html']
+    def process_item(self, item: CrawlItem, _: Spider) -> CrawlItem:
+        if item.html:
+            item.html = None
 
         return item
+
+
+class ConvertToItemPipeline(object):
+    def process_item(self, item: CrawlItem, _: Spider) -> itemadapter.ItemAdapter:
+        return itemadapter.ItemAdapter(item)

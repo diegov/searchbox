@@ -1,12 +1,13 @@
 import datetime
-from typing import Any, Dict, Iterable, Optional, TypeVar
-from urllib.parse import SplitResult, urljoin, urlsplit, urlunsplit
+from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, TypeVar, Union
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import dateutil.parser
 import extruct
 import links_from_header
 import markdown
 import parsel
+from scrapy.core.engine import Response
 import scrapy.utils.response as scrapy_response
 import validators
 from lxml import etree
@@ -17,7 +18,7 @@ from w3lib.html import get_base_url
 TEXT_XPATH = "//body//text()"
 
 
-def fix_url(url):
+def fix_url(url: Optional[str]) -> Optional[str]:
     if not url:
         return None
 
@@ -31,12 +32,12 @@ def fix_url(url):
     return None
 
 
-def is_github_html(response):
+def is_github_html(response: Response) -> bool:
     content_type = None
     if 'Content-Type' in response.headers:
-        content_type = response.headers['Content-Type'].decode('utf-8')
+        content_type = (response.headers['Content-Type'] or b'').decode('utf-8')
     elif 'content-type' in response.headers:
-        content_type = response.headers['content-type'].decode('utf-8')
+        content_type = (response.headers['content-type'] or b'').decode('utf-8')
 
     if content_type is None:
         return False
@@ -46,9 +47,9 @@ def is_github_html(response):
         parts[1].startswith('vnd.github.') and parts[1].endswith('.html')
 
 
-def body_text(response):
+def body_text(response: Optional[Response]) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     if response is None:
-        return None
+        return (None, None, None)
 
     text_data = None
     title = None
@@ -77,7 +78,7 @@ def body_text(response):
     return (title, text_data, html)
 
 
-def is_processable(response, process_cached=False):
+def is_processable(response: Response, process_cached: bool = False) -> bool:
     status_ok = response.status < 400 and response.status != 304
     is_cached = 'cached' in response.flags
     return status_ok and (process_cached or not is_cached)
@@ -108,7 +109,7 @@ def normalise_tag(tag_source: str) -> Iterable[str]:
 T = TypeVar('T')
 
 
-def filter_none(elements: Iterable[T]) -> Iterable[T]:
+def filter_none(elements: Iterable[T]) -> Generator[T, None, None]:
     return (x for x in elements if x is not None)
 
 
@@ -130,8 +131,8 @@ class MicroformatExtractor:
         else:
             self.data = metadata
 
-    def get_published_date(self):
-        def get_attribute_list():
+    def get_published_date(self) -> Optional[datetime.datetime]:
+        def get_attribute_list() -> Generator[str, None, None]:
             if 'rdfa' in self.data:
                 for element in filter_none(self.data['rdfa']):
                     yield from iterate_rdfa_tags(
@@ -164,7 +165,7 @@ class MicroformatExtractor:
             yield from get_json_ld_tags(self.data['json-ld'])
 
         if 'rdfa' in self.data:
-            yield from get_rdfs_tags(self.data['rdfa'])
+            yield from get_rdfa_tags(self.data['rdfa'])
 
         if 'microdata' in self.data:
             if 'keywords' in self.data['microdata']:
@@ -179,18 +180,18 @@ class MicroformatExtractor:
                     yield tag
 
 
-def compare_urls(a: str, b: str, ignore_protocol=True) -> bool:
+def compare_urls(a: str, b: str, ignore_protocol: bool = True) -> bool:
     def fix_path(path: str) -> str:
         if path.endswith('/'):
             return path[:-1]
         return path
 
-    def parse_url(url: str, ignore_protocol: bool) -> Optional[SplitResult]:
+    def parse_url(url: str, ignore_protocol: bool) -> Optional[str]:
         fixed = fix_url(url)
         if fixed is None:
             return None
 
-        result = urlsplit(fixed)
+        result = (*urlsplit(fixed),)
         if ignore_protocol:
             result = ('', *result[1:])
 
@@ -207,25 +208,24 @@ def compare_urls(a: str, b: str, ignore_protocol=True) -> bool:
     return url_a == url_b
 
 
-def get_json_ld_tags(data: Dict[str, str]) -> Iterable[str]:
+def get_json_ld_tags(data: List[Dict[str, Any]]) -> Iterable[str]:
     for element in filter_none(data):
         if 'keywords' in element:
             for keyword in filter_none(parse_tag_list(element['keywords'])):
                 yield keyword
-        if 'mainEntity' in element and 'keywords' in element[
-                'mainEntity']:
+        if 'mainEntity' in element and 'keywords' in element['mainEntity']:
             for keyword in filter_none(parse_tag_list(
                     element['mainEntity']['keywords'])):
                 yield keyword
 
 
-def get_rdfs_tags(data: Dict[str, str]) -> Iterable[str]:
+def get_rdfa_tags(data: List[Dict[str, Any]]) -> Generator[str, None, None]:
     for element in filter_none(data):
         yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tag',
                                      preprocess=normalise_tag)
-        yield from iterate_rdfa_tags(element, 'ogp.me/ns/video#tag',
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tags',
                                      preprocess=normalise_tag)
-        yield from iterate_rdfa_tags(element, 'ogp.me/ns/article#tag',
+        yield from iterate_rdfa_tags(element, 'ogp.me/ns/video#tag',
                                      preprocess=normalise_tag)
         yield from iterate_rdfa_tags(element, 'ogp.me/ns#tags',
                                      preprocess=normalise_tag)
@@ -235,7 +235,11 @@ def get_rdfs_tags(data: Dict[str, str]) -> Iterable[str]:
                                      preprocess=normalise_tag)
     
 
-def iterate_rdfa_tags(rdfa_element, attribute, preprocess=None):
+def iterate_rdfa_tags(
+        rdfa_element: Dict[str, Any],
+        attribute: str,
+        preprocess: Optional[Callable[[str], Iterable[str]]] = None
+) -> Generator[str, None, None]:
     for protocol in ['http', 'https']:
         key = "{}://{}".format(protocol, attribute)
         if key in rdfa_element:
@@ -247,7 +251,7 @@ def iterate_rdfa_tags(rdfa_element, attribute, preprocess=None):
                         yield tag['@value']
 
 
-def json_ld_matches_url(element, url, match_by_default: bool = False) -> bool:
+def json_ld_matches_url(element: Dict[str, Any], url: str, match_by_default: bool = False) -> bool:
     if 'url' in element:
         return compare_urls(element['url'], url, ignore_protocol=True)
 
@@ -257,7 +261,7 @@ def json_ld_matches_url(element, url, match_by_default: bool = False) -> bool:
     return match_by_default
 
 
-def iterate_elements(list_or_obj) -> Iterable[Any]:
+def iterate_elements(list_or_obj: Union[List[T], T]) -> Generator[T, None, None]:
     if isinstance(list_or_obj, list):
         for element in list_or_obj:
             yield element
@@ -265,7 +269,7 @@ def iterate_elements(list_or_obj) -> Iterable[Any]:
         yield list_or_obj
 
 
-def parse_tag_list(list_or_str) -> Iterable[str]:
+def parse_tag_list(list_or_str: Union[List[Any], str]) -> Generator[str, None, None]:
     if isinstance(list_or_str, list):
         for tag in filter_none(list_or_str):
             yield from normalise_tag(tag)
@@ -274,9 +278,9 @@ def parse_tag_list(list_or_str) -> Iterable[str]:
             yield from normalise_tag(tag)
 
 
-def try_parse_date(dt_str: str) -> datetime.datetime:
+def try_parse_date(dt_str: str) -> Optional[datetime.datetime]:
     cleaned_up = dt_str.replace(' +0000 ', ' UTC ')
-    attempts = [
+    attempts: List[Callable[[str], datetime.datetime]] = [
         # Twitter format
         lambda x: datetime.datetime.strptime(x,
                                              '%a %b %d %H:%M:%S %Z %Y'),
