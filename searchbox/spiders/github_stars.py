@@ -66,7 +66,7 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
             yield item
 
     def parse_repo(self, response: Response) -> Generator[Union[CrawlItem, Request], None, None]:
-        star_item = response.meta['item']
+        star_item: CrawlItem = response.meta['item']
 
         if not is_processable(response):
             yield star_item
@@ -76,24 +76,24 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
 
         last_update = item['updated_at']
         
-        star_item['last_update'] = last_update
+        star_item.last_update = last_update
 
         if 'topics' in item:
-            star_item['repository_tags'] = item['topics']
+            star_item.repository_tags = item['topics']
 
         yield star_item
 
         readme_url = item['url'] + '/readme'
         readme_req = scrapy.Request(url=readme_url, callback=self.parse_readme, headers={"Accept": "application/vnd.github.v3.html"})
 
-        readme_req.meta['url'] = star_item['url']
+        readme_req.meta['url'] = star_item.url
         yield readme_req
         
         if 'homepage' in item:
             homepage_url = fix_url(item['homepage'])
             if homepage_url:
                 req = scrapy.Request(url=homepage_url, callback=self.parse_homepage)
-                req.meta['github_url'] = star_item['url']
+                req.meta['github_url'] = star_item.url
                 yield req
 
     def parse_homepage(self, response: Response) -> Generator[CrawlItem, None, None]:
@@ -106,5 +106,5 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
         title, content, html = body_text(response)
         item = CrawlItem(url=url, repository_backlink=github_url, content=content, html=html)
         if title:
-            item['name'] = title
+            item.name = title
         yield item

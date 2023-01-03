@@ -72,8 +72,9 @@ DEFAULT_ITEM_CLASS = 'searchbox.items.CrawlItem'
 
 ITEM_PIPELINES = {
     'searchbox.pipelines.SearchboxPipeline': 0,
-    'searchbox.pipelines.CleanupPipeline': 0,
-    'scrapyelasticsearch.scrapyelasticsearch.ElasticSearchPipeline': 1
+    'searchbox.pipelines.CleanupPipeline': 10,
+    'searchbox.pipelines.ConvertToItemPipeline': 20,
+    'scrapyelasticsearch.scrapyelasticsearch.ElasticSearchPipeline': 30
 }
 
 def get_elastic_url() -> str:

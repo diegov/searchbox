@@ -66,10 +66,10 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
                                   url=web_url)
 
             if 'last_activity_at' in starred:
-                star_item['last_update'] = starred['last_activity_at']
+                star_item.last_update = starred['last_activity_at']
 
             if 'tag_list' in starred:
-                star_item['repository_tags'] = starred['tag_list']
+                star_item.repository_tags = starred['tag_list']
 
             yield star_item
 
@@ -77,7 +77,7 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
                 url = starred['readme_url'] + '?format=json'
                 readme_req = scrapy.Request(url=url,
                                             callback=self.parse_readme)
-                readme_req.meta['url'] = star_item['url']
+                readme_req.meta['url'] = star_item.url
                 yield readme_req
 
             for homepage in get_links_from_markdown(response, description_md):
@@ -85,7 +85,7 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
                 if homepage_url:
                     req = scrapy.Request(url=homepage_url,
                                          callback=self.parse_homepage)
-                    req.meta['gitlab_url'] = star_item['url']
+                    req.meta['gitlab_url'] = star_item.url
                     yield req
 
     def parse_readme(self, response: TextResponse) -> Generator[CrawlItem, None, None]:
@@ -107,5 +107,5 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
         item = CrawlItem(url=url, repository_backlink=gitlab_url,
                          content=content, html=html)
         if title:
-            item['name'] = title
+            item.name = title
         yield item

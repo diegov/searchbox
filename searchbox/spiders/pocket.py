@@ -62,7 +62,7 @@ class PocketSpider(scrapy.Spider):  # type: ignore
             else:
                 tags = None
 
-            yield CrawlItem(name=name, description=description, last_update=last_update, url=url, alt_url=alt_url, pocket_tags=tags)
+            yield CrawlItem(name=name, description=description, last_update=last_update, url=url, alt_url=alt_url, pocket_tags=tags or list())
             req = scrapy.Request(url=url, callback=self.parse_webpage)
             # Save original URL, in case of redirects, since it's the key of the item
             req.meta['url'] = url
