@@ -92,7 +92,9 @@ mypy==0.991
 mypy-extensions==0.4.3
     # via mypy
 packaging==21.3
-    # via pytest
+    # via
+    #   pytest
+    #   scrapy
 parsel==1.6.0
     # via
     #   itemloaders
@@ -143,7 +145,7 @@ requests==2.27.1
     #   tldextract
 requests-file==1.5.1
     # via tldextract
-scrapy==2.6.1
+scrapy==2.7.1
     # via
     #   -r requirements.in
     #   scrapyelasticsearch
@@ -167,9 +169,7 @@ soupsieve==2.3.1
 tldextract==3.2.0
     # via scrapy
 tomli==2.0.1
-    # via
-    #   mypy
-    #   pytest
+    # via pytest
 twisted==22.2.0
     # via scrapy
 twitter==1.19.3
