@@ -6,45 +6,48 @@
 #
 -e git+https://github.com/diegov/scrapy-elasticsearch.git@d74d27b50eb01497159be9b3a3229a9f2310ad06#egg=ScrapyElasticSearch
     # via -r requirements.in
-attrs==21.4.0
+attrs==22.2.0
     # via
     #   automat
     #   pytest
     #   service-identity
     #   twisted
-automat==20.2.0
+automat==22.10.0
     # via twisted
-beautifulsoup4==4.10.0
+beautifulsoup4==4.11.1
     # via mf2py
-certifi==2021.10.8
+certifi==2022.12.7
     # via
     #   -r requirements.in
     #   elasticsearch
     #   requests
-cffi==1.15.0
+    #   twitter
+cffi==1.15.1
     # via cryptography
-charset-normalizer==2.0.12
+charset-normalizer==2.1.1
     # via requests
 constantly==15.1.0
     # via twisted
-cryptography==36.0.2
+cryptography==39.0.0
     # via
     #   pyopenssl
     #   scrapy
     #   service-identity
-cssselect==1.1.0
+cssselect==1.2.0
     # via
     #   parsel
     #   scrapy
 decorator==5.1.1
     # via validators
-elasticsearch==7.17.1
+elasticsearch==7.17.8
     # via
     #   -r requirements.in
     #   scrapyelasticsearch
-extruct==0.13.0
+exceptiongroup==1.1.0
+    # via pytest
+extruct==0.14.0
     # via -r requirements.in
-filelock==3.6.0
+filelock==3.9.0
     # via tldextract
 html-text==0.5.2
     # via extruct
@@ -54,36 +57,36 @@ html5lib==1.1
     #   pyrdfa3
 hyperlink==21.0.0
     # via twisted
-idna==3.3
+idna==3.4
     # via
     #   hyperlink
     #   requests
     #   tldextract
-incremental==21.3.0
+incremental==22.10.0
     # via twisted
 iniconfig==1.1.1
     # via pytest
 isodate==0.6.1
     # via rdflib
-itemadapter==0.5.0
+itemadapter==0.7.0
     # via
     #   itemloaders
     #   scrapy
-itemloaders==1.0.4
+itemloaders==1.0.6
     # via scrapy
-jmespath==1.0.0
+jmespath==1.0.1
     # via itemloaders
 jstyleson==0.0.2
     # via extruct
 links-from-link-header==0.1.0
     # via -r requirements.in
-lxml==4.8.0
+lxml==4.9.2
     # via
     #   extruct
     #   html-text
     #   parsel
     #   scrapy
-markdown==3.3.6
+markdown==3.4.1
     # via -r requirements.in
 mf2py==1.1.2
     # via extruct
@@ -91,9 +94,12 @@ mypy==0.991
     # via -r requirements.in
 mypy-extensions==0.4.3
     # via mypy
-packaging==21.3
-    # via pytest
-parsel==1.6.0
+packaging==22.0
+    # via
+    #   parsel
+    #   pytest
+    #   scrapy
+parsel==1.7.0
     # via
     #   itemloaders
     #   scrapy
@@ -101,8 +107,6 @@ pluggy==1.0.0
     # via pytest
 protego==0.2.1
     # via scrapy
-py==1.11.0
-    # via pytest
 pyasn1==0.4.8
     # via
     #   pyasn1-modules
@@ -111,17 +115,15 @@ pyasn1-modules==0.2.8
     # via service-identity
 pycparser==2.21
     # via cffi
-pydispatcher==2.0.5
+pydispatcher==2.0.6
     # via scrapy
-pyopenssl==22.0.0
+pyopenssl==23.0.0
     # via scrapy
-pyparsing==3.0.7
-    # via
-    #   packaging
-    #   rdflib
+pyparsing==3.0.9
+    # via rdflib
 pyrdfa3==3.5.3
     # via extruct
-pytest==7.1.1
+pytest==7.2.0
     # via -r requirements.in
 python-dateutil==2.8.2
     # via -r requirements.in
@@ -129,21 +131,18 @@ python-mimeparse==1.6.0
     # via -r requirements.in
 queuelib==1.6.2
     # via scrapy
-rdflib==6.1.1
+rdflib==6.2.0
     # via
     #   extruct
     #   pyrdfa3
-    #   rdflib-jsonld
-rdflib-jsonld==0.6.2
-    # via extruct
-requests==2.27.1
+requests==2.28.1
     # via
     #   mf2py
     #   requests-file
     #   tldextract
 requests-file==1.5.1
     # via tldextract
-scrapy==2.6.1
+scrapy==2.7.1
     # via
     #   -r requirements.in
     #   scrapyelasticsearch
@@ -155,40 +154,37 @@ six==1.16.0
     #   extruct
     #   html5lib
     #   isodate
-    #   parsel
     #   protego
     #   python-dateutil
     #   requests-file
     #   service-identity
-    #   validators
-    #   w3lib
-soupsieve==2.3.1
+soupsieve==2.3.2.post1
     # via beautifulsoup4
-tldextract==3.2.0
+tldextract==3.4.0
     # via scrapy
 tomli==2.0.1
     # via
     #   mypy
     #   pytest
-twisted==22.2.0
+twisted==22.10.0
     # via scrapy
-twitter==1.19.3
+twitter==1.19.6
     # via -r requirements.in
-types-markdown==3.3.12
+types-markdown==3.4.2.1
     # via -r requirements.in
-types-python-dateutil==2.8.10
+types-python-dateutil==2.8.19.5
     # via -r requirements.in
-typing-extensions==4.1.1
+typing-extensions==4.4.0
     # via
     #   mypy
     #   twisted
-urllib3==1.26.9
+urllib3==1.26.13
     # via
     #   elasticsearch
     #   requests
-validators==0.18.2
+validators==0.20.0
     # via -r requirements.in
-w3lib==1.22.0
+w3lib==2.1.1
     # via
     #   extruct
     #   itemloaders
@@ -196,7 +192,7 @@ w3lib==1.22.0
     #   scrapy
 webencodings==0.5.1
     # via html5lib
-zope-interface==5.4.0
+zope-interface==5.5.2
     # via
     #   scrapy
     #   twisted
