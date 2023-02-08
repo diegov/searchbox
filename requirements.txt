@@ -28,7 +28,7 @@ charset-normalizer==2.1.1
     # via requests
 constantly==15.1.0
     # via twisted
-cryptography==39.0.0
+cryptography==39.0.1
     # via
     #   pyopenssl
     #   scrapy
@@ -43,8 +43,6 @@ elasticsearch==7.17.8
     # via
     #   -r requirements.in
     #   scrapyelasticsearch
-exceptiongroup==1.1.0
-    # via pytest
 extruct==0.14.0
     # via -r requirements.in
 filelock==3.9.0
@@ -162,10 +160,6 @@ soupsieve==2.3.2.post1
     # via beautifulsoup4
 tldextract==3.4.0
     # via scrapy
-tomli==2.0.1
-    # via
-    #   mypy
-    #   pytest
 twisted==22.10.0
     # via scrapy
 twitter==1.19.6
