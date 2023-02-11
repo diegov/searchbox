@@ -5,6 +5,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
+from dataclasses import asdict
 import itemadapter
 from w3lib.html import get_base_url
 from .items import CrawlItem
@@ -56,4 +57,9 @@ class CleanupPipeline(object):
 
 class ConvertToItemPipeline(object):
     def process_item(self, item: CrawlItem, _: Spider) -> itemadapter.ItemAdapter:
-        return itemadapter.ItemAdapter(item)
+        # ItemAdapter accepts a dataclass directly, but it will keep all None attributes,
+        # which causes the elasticsearch sink to overwrite unpopulated fields with nulls.
+        # TODO: Find a way to filter out None attributes when using CrawlItem directly,
+        # or add the option to the Elastic sink.
+        # return itemadapter.ItemAdapter(item)
+        return itemadapter.ItemAdapter({k:v for k, v in asdict(item).items() if v})
