@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
-from typing import Any, Generator, Union
+import re
+from typing import Any, Callable, Dict, List, Optional
+import urllib.parse
 
 import scrapy
-from scrapy.core.engine import Request, Response
+from scrapy.core.engine import Response
 from scrapy.http import JsonRequest, TextResponse
+
+from ..types import SpiderItems, SpiderRequests, SpiderResults
 
 from ..extractors import (body_text, extract_next_page_link, fix_url,
                           get_links_from_markdown, get_text_from_html,
@@ -17,24 +21,49 @@ usernames = SECRETS.gitlab['users_to_crawl']
 token = SECRETS.gitlab['personal_access_token']
 
 
+class GitlabURLMatcher:
+    def __init__(self, spider: 'GitlabStarsSpider'):
+        self.spider = spider
+        self.expression = '^http(s)?://(www\\.)?gitlab.com/([^/]+)/([^/]+)(/)?$'
+        # TODO: Ignore query string
+
+    def __call__(self, r: scrapy.Request) -> SpiderRequests:
+        m = re.match(self.expression, r.url)
+        if m:
+            owner: str  = m.group(3)
+            repo: str = m.group(4)
+
+            # User pages in github have the format https://gitlab.com/users/...
+            # We don't want those
+            if owner != 'users':
+                yield from self.spider.get_repo_details(r.url, owner, repo)
+
+
 class GitlabStarsSpider(scrapy.Spider):  # type: ignore
     name = 'gitlab_stars'
     handle_httpstatus_list = [x for x in range(400, 600)]
 
-    def _prepare_json_request(self, url: str, callback: Any) -> JsonRequest:
+    def get_url_matcher(self) -> Callable[[scrapy.Request], SpiderRequests]:
+        return GitlabURLMatcher(self)
+
+    def _prepare_json_request(self, url: str, callback: Any, meta: Dict[str, Any] = {}) -> JsonRequest:
         req = JsonRequest(url=url, callback=callback)
         req.headers['PRIVATE-TOKEN'] = token
         # API call, don't need to check robots
         req.meta['dont_obey_robotstxt'] = True
+
+        for k, v in meta.items():
+            req.meta[k] = v
+
         return req
 
-    def start_requests(self) -> Generator[Request, None, None]:
+    def start_requests(self) -> SpiderRequests:
         for username in usernames:
             template = 'https://gitlab.com/api/v4/users?username={}'
             url = template.format(username)
             yield self._prepare_json_request(url, self.parse_user)
 
-    def parse_user(self, response: Response) -> Generator[Request, None, None]:
+    def parse_user(self, response: Response) -> SpiderRequests:
         if not is_processable(response, process_cached=True):
             return
 
@@ -44,7 +73,7 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
             url = template.format(user['id'])
             yield self._prepare_json_request(url, self.parse_stars)
 
-    def parse_stars(self, response: TextResponse) -> Generator[Union[Request, CrawlItem], None, None]:
+    def parse_stars(self, response: TextResponse) -> SpiderResults:
         if not is_processable(response, process_cached=True):
             return
 
@@ -56,39 +85,55 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
         except Exception as e:
             logging.log(logging.ERROR, 'Failed to get next page url', e)
 
-        items = json.loads(response.text)
+        items: List[Dict[str, Any]] = json.loads(response.text)
         for starred in items:
-            web_url = starred['web_url']
-            name = starred['name']
-            description_md = starred['description']
-            description = get_text_from_markdown(response, description_md)
-            star_item = CrawlItem(name=name, description=description,
-                                  url=web_url)
+            yield from self._parse_repo_details(response, starred)
 
-            if 'last_activity_at' in starred:
-                star_item.last_update = starred['last_activity_at']
+    def get_repo_details(self, url: str, owner: str, repo: str) -> SpiderRequests:
+        project_id = urllib.parse.quote("{}/{}".format(owner, repo), safe='')
+        api_url = 'https://gitlab.com/api/v4/projects/{}'.format(project_id)
+        yield self._prepare_json_request(api_url, self.parse_repo_details,
+                                         meta={'url': url})
 
-            if 'tag_list' in starred:
-                star_item.repository_tags = starred['tag_list']
+    def parse_repo_details(self, response: TextResponse) -> SpiderResults:
+        if not is_processable(response):
+            return
 
-            yield star_item
+        starred_item = json.loads(response.text)
+        yield from self._parse_repo_details(response, starred_item)
 
-            if 'readme_url' in starred:
-                url = starred['readme_url'] + '?format=json'
-                readme_req = scrapy.Request(url=url,
-                                            callback=self.parse_readme)
-                readme_req.meta['url'] = star_item.url
-                yield readme_req
+    def _parse_repo_details(self, response: TextResponse, starred: Dict[str, Any]) -> SpiderResults:
+        web_url = response.meta.get('url') or starred['web_url']
+        name = starred['name']
+        description_md = starred['description']
+        description = get_text_from_markdown(response, description_md)
+        star_item = CrawlItem(name=name, description=description,
+                              url=web_url)
 
-            for homepage in get_links_from_markdown(response, description_md):
-                homepage_url = fix_url(homepage)
-                if homepage_url:
-                    req = scrapy.Request(url=homepage_url,
-                                         callback=self.parse_homepage)
-                    req.meta['gitlab_url'] = star_item.url
-                    yield req
+        if 'last_activity_at' in starred:
+            star_item.last_update = starred['last_activity_at']
 
-    def parse_readme(self, response: TextResponse) -> Generator[CrawlItem, None, None]:
+        if 'tag_list' in starred:
+            star_item.repository_tags = starred['tag_list']
+
+        yield star_item
+
+        if 'readme_url' in starred:
+            url = starred['readme_url'] + '?format=json'
+            readme_req = scrapy.Request(url=url,
+                                        callback=self.parse_readme)
+            readme_req.meta['url'] = star_item.url
+            yield readme_req
+
+        for homepage in get_links_from_markdown(response, description_md):
+            homepage_url = fix_url(homepage)
+            if homepage_url:
+                req = scrapy.Request(url=homepage_url,
+                                     callback=self.parse_homepage)
+                req.meta['gitlab_url'] = star_item.url
+                yield req
+
+    def parse_readme(self, response: TextResponse) -> SpiderItems:
         if is_processable(response):
             url = response.meta['url']
             readme = json.loads(response.text)
@@ -96,7 +141,7 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
             content = get_text_from_html(response, html, is_snippet=True)
             yield CrawlItem(url=url, content=content, html=html)
 
-    def parse_homepage(self, response: Response) -> Generator[CrawlItem, None, None]:
+    def parse_homepage(self, response: Response) -> SpiderItems:
         if not is_processable(response):
             return
 

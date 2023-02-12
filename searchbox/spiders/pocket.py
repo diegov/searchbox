@@ -2,12 +2,14 @@
 import json
 import re
 from datetime import datetime
-from typing import Any, Dict, Generator, Optional, Union
+from typing import Any, Dict, Optional
 from urllib.parse import urlencode
 
 import scrapy
 from scrapy.core.engine import Response
 from scrapy.http import Request
+
+from ..types import SpiderItems, SpiderRequests, SpiderResults
 
 from ..extractors import body_text, is_processable
 from ..items import CrawlItem
@@ -22,10 +24,10 @@ class PocketSpider(scrapy.Spider):  # type: ignore
     consumer_key = SECRETS.pocket['consumer_key']
     access_token = SECRETS.pocket['access_token']
 
-    def start_requests(self) -> Generator[Request, None, None]:
+    def start_requests(self) -> SpiderRequests:
         yield self.make_pocket_request()
 
-    def parse_webpage(self, response: Response) -> Generator[CrawlItem, None, None]:
+    def parse_webpage(self, response: Response) -> SpiderItems:
         if not is_processable(response):
             return
         url = response.meta['url']
@@ -33,7 +35,7 @@ class PocketSpider(scrapy.Spider):  # type: ignore
         _, content, html = body_text(response)
         yield CrawlItem(url=url, content=content, html=html)
 
-    def parse_pocket_page(self, response: Response) -> Generator[Union[CrawlItem, Request], None, None]:
+    def parse_pocket_page(self, response: Response) -> SpiderResults:
         if not is_processable(response):
             return
         result = json.loads(response.text)
