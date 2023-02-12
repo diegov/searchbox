@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from typing import Generator, Optional, Union
+from typing import Optional
 import scrapy
 from scrapy.core.engine import Response
 from scrapy.http import Request
 from twitter import OAuth
 import json
+
+from ..types import SpiderItems, SpiderRequests, SpiderResults
 
 from ..secrets_loader import SECRETS
 from ..extractors import body_text, is_processable, try_parse_date
@@ -21,7 +23,7 @@ class TwitterFavsSpider(scrapy.Spider):  # type: ignore
     access_token_key = SECRETS.twitter['access_token_key']
     access_token_secret = SECRETS.twitter['access_token_secret']
 
-    def start_requests(self) -> Generator[Request, None, None]:
+    def start_requests(self) -> SpiderRequests:
         yield self.make_favourites_request()
 
     def make_favourites_request(self, max_id: Optional[int] = None) -> Request:
@@ -43,10 +45,7 @@ class TwitterFavsSpider(scrapy.Spider):  # type: ignore
         req.meta['dont_obey_robotstxt'] = True
         return req
 
-    def parse_favourites(
-            self,
-            response: Response
-    ) -> Generator[Union[Request, CrawlItem], None, None]:
+    def parse_favourites(self, response: Response) -> SpiderResults:
         if not is_processable(response):
             return
 
@@ -83,7 +82,7 @@ class TwitterFavsSpider(scrapy.Spider):  # type: ignore
         yield self.make_favourites_request(max_id=max_id)
 
 
-    def parse_webpage(self, response: Response) -> Generator[CrawlItem, None, None]:
+    def parse_webpage(self, response: Response) -> SpiderItems:
         if not is_processable(response):
             return
         url = response.meta['url']

@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import re
 import json
-from typing import Generator, Union
+from typing import Callable
 
 import scrapy
-from scrapy.core.engine import Request, Response
-from scrapy.http import JsonRequest
+from scrapy.core.engine import Response
+from scrapy.http import JsonRequest, Request
+
+from ..types import SpiderItems, SpiderRequests, SpiderResults
 
 from ..extractors import (body_text, extract_next_page_link, fix_url,
                           is_processable)
@@ -12,6 +15,23 @@ from ..items import CrawlItem
 from ..secrets_loader import SECRETS
 
 usernames = SECRETS.github['users_to_crawl']
+
+
+class GithubURLMatcher:
+    def __init__(self, spider: 'GithubStarsSpider'):
+        self.spider = spider
+        self.expression = '^http(s)?://(www\\.)?github.com/([^/]+)/([^/]+)(/)?$'
+        # TODO: Ignore query string
+
+    def __call__(self, r: Request) -> SpiderRequests:
+        m = re.match(self.expression, r.url)
+        if m:
+            owner: str  = m.group(3)
+            repo: str = m.group(4)
+            item_url = 'https://github.com/{}/{}'.format(owner, repo)
+            api_url = 'https://api.github.com/repos/{}/{}'.format(owner, repo)
+
+            yield from self.spider.get_repo_details(api_url, CrawlItem(url=item_url))
 
 
 class GithubStarsSpider(scrapy.Spider):  # type: ignore
@@ -22,7 +42,10 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
 
     handle_httpstatus_list = [x for x in range(400, 600)]
 
-    def start_requests(self) -> Generator[scrapy.Request, None, None]:
+    def get_url_matcher(self) -> Callable[[Request], SpiderRequests]:
+        return GithubURLMatcher(self)
+
+    def start_requests(self) -> SpiderRequests:
         urls = ['https://api.github.com/users/{}/starred'.format(name) for name in usernames]
         for url in urls:
             req = JsonRequest(url=url, callback=self.parse_stars)
@@ -30,10 +53,13 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
             req.meta['dont_obey_robotstxt'] = True
             yield req
 
-    def parse_stars(
-            self,
-            response: Response
-    ) -> Generator[Union[CrawlItem, scrapy.Request], None, None]:
+    def get_repo_details(self, api_url: str, item: CrawlItem) -> SpiderRequests:
+        req = JsonRequest(url=api_url, callback=self.parse_repo)
+        req.meta['item'] = item
+        req.meta['dont_obey_robotstxt'] = True
+        yield req
+
+    def parse_stars(self, response: Response) -> SpiderResults:
         if not is_processable(response, process_cached=True):
             return
 
@@ -45,10 +71,7 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
             description = starred['description']
             star_item = CrawlItem(name=name, description=description,
                                   url=html_url)
-            req = JsonRequest(url=api_url, callback=self.parse_repo)
-            req.meta['item'] = star_item
-            req.meta['dont_obey_robotstxt'] = True
-            yield req
+            yield from self.get_repo_details(api_url, star_item)
 
         next_page_url = extract_next_page_link(response.headers)
         if next_page_url is not None:
@@ -56,7 +79,7 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
             req.meta['dont_obey_robotstxt'] = True
             yield req
 
-    def parse_readme(self, response: Response) -> Generator[CrawlItem, None, None]:
+    def parse_readme(self, response: Response) -> SpiderItems:
         if is_processable(response):
             # Ignore title, we get it from the API
             _, content, html = body_text(response)
@@ -65,7 +88,7 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
 
             yield item
 
-    def parse_repo(self, response: Response) -> Generator[Union[CrawlItem, Request], None, None]:
+    def parse_repo(self, response: Response) -> SpiderResults:
         star_item: CrawlItem = response.meta['item']
 
         if not is_processable(response):
@@ -80,6 +103,9 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
 
         if 'topics' in item:
             star_item.repository_tags = item['topics']
+
+        star_item.name = star_item.name or item.get('name')
+        star_item.description = star_item.description or item.get('description')
 
         yield star_item
 
@@ -96,7 +122,7 @@ class GithubStarsSpider(scrapy.Spider):  # type: ignore
                 req.meta['github_url'] = star_item.url
                 yield req
 
-    def parse_homepage(self, response: Response) -> Generator[CrawlItem, None, None]:
+    def parse_homepage(self, response: Response) -> SpiderItems:
         if not is_processable(response):
             return
 
