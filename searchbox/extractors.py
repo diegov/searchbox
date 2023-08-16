@@ -315,6 +315,9 @@ def get_text_from_html(response: TextResponse,
 
 def get_links_from_markdown(response: TextResponse,
                             content: str) -> Iterable[str]:
+    # TODO: Why is this, or its body, null at times?
+    if not content:
+        return
     html = _md_to_html_doc(content)
     yield from get_links_from_html(response, html)
 

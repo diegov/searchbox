@@ -106,7 +106,10 @@ class GitlabStarsSpider(scrapy.Spider):  # type: ignore
         web_url = response.meta.get('url') or starred['web_url']
         name = starred['name']
         description_md = starred['description']
-        description = get_text_from_markdown(response, description_md)
+        if description_md:
+            description = get_text_from_markdown(response, description_md)
+        else:
+            description = ''
         star_item = CrawlItem(name=name, description=description,
                               url=web_url)
 
