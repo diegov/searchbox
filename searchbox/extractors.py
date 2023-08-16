@@ -325,8 +325,8 @@ def get_links_from_markdown(response: TextResponse,
 def get_links_from_html(response: TextResponse, html: str) -> Iterable[str]:
     base_url = scrapy_response.get_base_url(response)
     doc = etree.fromstring(html, base_url=base_url)
-    for link in doc.xpath('//a'):
-        url = link.get('href')
+    for link in doc.xpath('//a'): #  type: ignore
+        url = link.get('href') #  type: ignore
         full_url = urljoin(base_url, url)
         if full_url.startswith('http:') or full_url.startswith('https:'):
             yield full_url

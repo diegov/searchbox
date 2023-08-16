@@ -82,10 +82,13 @@ links-from-link-header==0.1.0
     # via -r requirements.in
 lxml==4.9.2
     # via
+    #   -r requirements.in
     #   extruct
     #   html-text
     #   parsel
     #   scrapy
+lxml-stubs==0.4.0
+    # via -r requirements.in
 markdown==3.4.1
     # via -r requirements.in
 mf2py==1.1.2
