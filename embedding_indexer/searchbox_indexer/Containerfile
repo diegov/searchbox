@@ -1,0 +1,21 @@
+FROM docker.io/python:3.11
+
+RUN mkdir /app
+
+WORKDIR /app
+
+RUN python3 -m venv venv
+
+ADD requirements.txt ./requirements.txt
+ADD pyrun.sh ./pyrun.sh
+
+RUN ./pyrun.sh pip install -r requirements.txt
+
+ADD models.py ./models.py
+RUN ./pyrun.sh python3 models.py init-models
+
+ADD index.py ./index.py
+ADD db.py ./db.py
+ADD query.py ./query.py
+
+ENTRYPOINT ./pyrun.sh

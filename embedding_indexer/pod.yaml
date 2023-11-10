@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: searchbox_indexer_pod
+  name: searchbox_indexer_pod
+spec:
+  containers:
+    - image: docker.io/ankane/pgvector:v0.5.1
+      name: searchbox_indexer_postgres
+      env:
+        - name: POSTGRES_PASSWORD
+          value: notsecure
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+      ports:
+        - containerPort: 5432
+          hostPort: 15432
+          protocol: TCP
+      volumeMounts:
+        - mountPath: "/var/lib/postgresql/data/pgdata"
+          name: postgres-data
+
+    - image: localhost/searchbox_indexer:latest
+      name: searchbox_indexer
+      command: ["./pyrun.sh"]
+      args: ["python3", "index.py"]
+      env:
+        - name: POSTGRES_PASSWORD
+          value: notsecure
+        - name: POSTGRES_HOST
+          value: localhost
+        - name: DOCUMENTS_BATCH_SIZE
+          value: "3"
+        - name: DOCUMENTS_PATH
+          value: /data
+      volumeMounts:
+        - mountPath: /data
+          name: data-files
+
+    - image: localhost/searchbox_indexer:latest
+      name: searchbox_query_server
+      command: ["./pyrun.sh"]
+      args: ["uvicorn", "--host", "0.0.0.0", "query:app"]
+      env:
+        - name: POSTGRES_PASSWORD
+          value: notsecure
+        - name: POSTGRES_HOST
+          value: localhost
+      ports:
+        - containerPort: 8000
+          hostPort: 18000
+          protocol: TCP
+
+  volumes:
+    - name: data-files
+      hostPath:
+        path: ./data
+        type: Directory
+    - name: postgres-data
+      persistentVolumeClaim:
+        claimName: searchbox_indexer_postgres_data
+
+  restartPolicy: Never

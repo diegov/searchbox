@@ -1,0 +1,8 @@
+llm
+llm-embed-jina
+llm-gpt4all
+psycopg2-binary
+types-psycopg2
+fastapi
+uvicorn[standard]
+beautifulsoup4
