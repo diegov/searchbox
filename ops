@@ -1,0 +1,1 @@
+{"author":{"id":"79d8b19c29ec72c77b88adefa79ebc43ac626b76c7123a6dd579691f2c538d6a"},"ops":[{"type":1,"timestamp":1701044000,"nonce":"7qUVkMZuDxoXxxo321ly1di7ftk=","title":"Replace parsel with BeautifulSoup","message":"Parsel does OK but it gets things wrong too often, specially wordpress blogs.","files":null}]}
